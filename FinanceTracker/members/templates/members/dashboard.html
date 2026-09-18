@@ -1,0 +1,22 @@
+{% extends 'members/base.html' %}
+{% block content %}
+<div class="heading"><div><p class="eyebrow">Your financial overview</p><h1>Hello, {{ user.first_name|default:user.username }}.</h1><p class="muted">A little more clarity on where your money goes.</p></div><span class="badge">Sample data · September 2026</span></div>
+<p class="demo-note">This is a dashboard preview. All amounts are fictional and are the same for every account.</p>
+<section class="summary" aria-label="Sample balances">
+  <article class="card balance featured"><p>Cash balance</p><h2>$2,450.00</h2><span>Checking + savings</span></article>
+  <article class="card balance"><p>Spent this month</p><h2>$500.00</h2><span>Across your three budgets</span></article>
+  <article class="card balance"><p>Budget remaining</p><h2>$250.00</h2><span>Of $750.00 planned</span></article>
+  <article class="card balance"><p>Credit card owed</p><h2>$180.00</h2><span>Sample outstanding balance</span></article>
+</section>
+<div class="dashboard-grid">
+  <section class="card"><div class="section-heading"><div><h2>Recent transactions</h2><p class="muted small">Your latest money in and out.</p></div><span class="pill">4 latest</span></div>
+    <div class="table-scroll"><table><caption class="sr-only">Sample recent transactions</caption><thead><tr><th scope="col">Transaction</th><th scope="col">Date</th><th scope="col" class="amount">Amount</th></tr></thead><tbody>
+    {% for transaction in transactions %}<tr><td><strong>{{ transaction.name }}</strong><span class="category">{{ transaction.category }}</span></td><td class="muted">{{ transaction.date }}</td><td class="amount {% if transaction.income %}income{% endif %}">{{ transaction.amount }}</td></tr>{% empty %}<tr><td colspan="3">No transactions yet.</td></tr>{% endfor %}
+    </tbody></table></div>
+    <p class="small muted table-foot">Recent activity only; this is not the full monthly history.</p>
+  </section>
+  <section class="card"><div class="section-heading"><div><h2>Budgeting goals</h2><p class="muted small">Monthly spending limits.</p></div></div>
+    {% for budget in budgets %}<div class="budget"><div class="budget-label"><strong>{{ budget.name }}</strong><span>${{ budget.spent }} <span class="muted">/ ${{ budget.limit }}</span></span></div><progress class="{% if budget.percent >= 80 %}near-limit{% endif %}" value="{{ budget.spent }}" max="{{ budget.limit }}" aria-label="{{ budget.name }} spending">{{ budget.percent }}%</progress><p class="small muted">${{ budget.remaining }} left{% if budget.percent >= 80 %} · Near your limit{% endif %}</p></div>{% endfor %}
+  </section>
+</div>
+{% endblock %}
