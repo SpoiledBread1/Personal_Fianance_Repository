@@ -1,22 +1,76 @@
 {% extends 'members/base.html' %}
-{% block content %}
-<div class="heading"><div><p class="eyebrow">Your financial overview</p><h1>Hello, {{ user.first_name|default:user.username }}.</h1><p class="muted">A little more clarity on where your money goes.</p></div><span class="badge">Sample data · September 2026</span></div>
-<p class="demo-note">This is a dashboard preview. All amounts are fictional and are the same for every account.</p>
-<section class="summary" aria-label="Sample balances">
-  <article class="card balance featured"><p>Cash balance</p><h2>$2,450.00</h2><span>Checking + savings</span></article>
-  <article class="card balance"><p>Spent this month</p><h2>$500.00</h2><span>Across your three budgets</span></article>
-  <article class="card balance"><p>Budget remaining</p><h2>$250.00</h2><span>Of $750.00 planned</span></article>
-  <article class="card balance"><p>Credit card owed</p><h2>$180.00</h2><span>Sample outstanding balance</span></article>
-</section>
-<div class="dashboard-grid">
-  <section class="card"><div class="section-heading"><div><h2>Recent transactions</h2><p class="muted small">Your latest money in and out.</p></div><span class="pill">4 latest</span></div>
-    <div class="table-scroll"><table><caption class="sr-only">Sample recent transactions</caption><thead><tr><th scope="col">Transaction</th><th scope="col">Date</th><th scope="col" class="amount">Amount</th></tr></thead><tbody>
-    {% for transaction in transactions %}<tr><td><strong>{{ transaction.name }}</strong><span class="category">{{ transaction.category }}</span></td><td class="muted">{{ transaction.date }}</td><td class="amount {% if transaction.income %}income{% endif %}">{{ transaction.amount }}</td></tr>{% empty %}<tr><td colspan="3">No transactions yet.</td></tr>{% endfor %}
-    </tbody></table></div>
-    <p class="small muted table-foot">Recent activity only; this is not the full monthly history.</p>
-  </section>
-  <section class="card"><div class="section-heading"><div><h2>Budgeting goals</h2><p class="muted small">Monthly spending limits.</p></div></div>
-    {% for budget in budgets %}<div class="budget"><div class="budget-label"><strong>{{ budget.name }}</strong><span>${{ budget.spent }} <span class="muted">/ ${{ budget.limit }}</span></span></div><progress class="{% if budget.percent >= 80 %}near-limit{% endif %}" value="{{ budget.spent }}" max="{{ budget.limit }}" aria-label="{{ budget.name }} spending">{{ budget.percent }}%</progress><p class="small muted">${{ budget.remaining }} left{% if budget.percent >= 80 %} · Near your limit{% endif %}</p></div>{% endfor %}
-  </section>
+{% block title %}Overview · Finance Hub{% endblock %}
+{% block body_class %}dashboard-page{% endblock %}
+{% block layout %}
+<aside class="sidebar">
+    <a class="wordmark sidebar-brand" href="{% url 'finance:dashboard' %}" aria-label="Finance Hub overview"><span class="monogram" aria-hidden="true">F</span><span>Finance Hub</span></a>
+    <p class="nav-label">Workspace</p>
+    <nav aria-label="Dashboard sections">
+        <a class="nav-link active" href="#overview" aria-current="location"><svg class="icon" aria-hidden="true"><use href="#icon-overview"/></svg><span>Overview</span></a>
+        <a class="nav-link" href="#transactions"><svg class="icon" aria-hidden="true"><use href="#icon-ledger"/></svg><span>Transactions</span></a>
+        <a class="nav-link" href="#budgets"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg><span>Budgets</span></a>
+        <a class="nav-link" href="#balances"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg><span>Balances</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+        <form method="post" action="{% url 'finance:logout' %}">{% csrf_token %}<button class="nav-link logout-button" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-logout"/></svg><span>Log out</span></button></form>
+        <p class="sidebar-signoff">A calmer<br>financial life.</p>
+    </div>
+</aside>
+<div class="dashboard-shell">
+    <header class="dashboard-topbar">
+        <p class="breadcrumb">Personal finance <span>/</span> Overview</p>
+        <div class="topbar-details"><span class="sample-badge"><span aria-hidden="true"></span>Sample data</span><span class="sample-month">September 2026</span><span class="avatar" title="{{ user.get_username }}">{{ user.first_name|default:user.username|slice:':1'|upper }}</span></div>
+    </header>
+    <main id="main-content" class="dashboard-main">
+        <section id="overview" class="dashboard-heading" aria-labelledby="dashboard-title">
+            <div><h1 id="dashboard-title">Welcome back, {{ user.first_name|default:user.username }}.</h1><p>A clearer view of your money.</p></div>
+            <div class="planned-action"><button class="button button-outline" type="button" disabled aria-describedby="entry-note"><span aria-hidden="true">+</span> Add transaction</button><span id="entry-note">Transaction entry · coming next</span></div>
+        </section>
+        <div class="overview-grid">
+            <section class="panel cash-panel" id="balances" aria-labelledby="cash-title">
+                <div class="cash-copy"><p class="eyebrow" id="cash-title">Available cash</p><p class="cash-amount">$2,450<span>.00</span></p><p class="cash-subtitle">Checking + savings</p><div class="cash-footnote"><span class="gold">Your financial picture</span><p>Illustrative balance history.<br>Bank accounts are not connected.</p></div></div>
+                <figure class="cash-chart">
+                    <figcaption>Sample balance history <span>September</span></figcaption>
+                    <!-- Fictional September balance points; not calculated from transactions. -->
+                    <svg viewBox="0 0 500 260" role="img" aria-labelledby="chart-title chart-desc">
+                        <title id="chart-title">Illustrative September cash balances</title>
+                        <desc id="chart-desc">Fictional balances: September 1, 1600 dollars; September 5, 1700; September 10, 1500; September 15, 1800; September 20, 2000; September 25, 2300; September 30, 2450. This sample chart is independent of the recent transaction list.</desc>
+                        <defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c9ad74" stop-opacity=".16"/><stop offset="100%" stop-color="#c9ad74" stop-opacity="0"/></linearGradient></defs>
+                        <g class="chart-grid"><path d="M52 24H472M52 74H472M52 124H472M52 174H472M52 224H472M52 24V224M192 24V224M332 24V224M472 24V224"/></g>
+                        <g class="chart-label"><text x="2" y="28">3,000</text><text x="2" y="78">2,500</text><text x="2" y="128">2,000</text><text x="2" y="178">1,500</text><text x="2" y="228">1,000</text><text x="52" y="250">Sep 1</text><text x="192" y="250" text-anchor="middle">Sep 10</text><text x="332" y="250" text-anchor="middle">Sep 20</text><text x="472" y="250" text-anchor="end">Sep 30</text></g>
+                        <path fill="url(#chart-fill)" d="M52 164L110 154L182 174L255 144L327 124L399 94L472 79V224H52Z"/>
+                        <path class="chart-line" d="M52 164L110 154L182 174L255 144L327 124L399 94L472 79"/>
+                        <circle cx="472" cy="79" r="7" fill="#111517" stroke="#c9ad74" stroke-opacity=".45"/><circle cx="472" cy="79" r="3.5" fill="#c9ad74"/>
+                    </svg>
+                </figure>
+            </section>
+            <section class="panel metrics-panel" aria-label="Sample monthly summary">
+                <div class="metric"><p class="eyebrow">Monthly spending</p><p class="metric-value"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg>$500.00</p></div>
+                <div class="metric"><p class="eyebrow">Budget remaining</p><p class="metric-value"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg>$250.00</p></div>
+                <div class="metric"><p class="eyebrow">Credit card balance</p><p class="metric-value"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg>$180.00</p></div>
+            </section>
+        </div>
+        <div class="details-grid">
+            <section class="panel transactions-panel" id="transactions" aria-labelledby="transactions-title">
+                <div class="panel-heading"><h2 id="transactions-title">Recent transactions</h2><span class="small-label">{{ transactions|length }} latest</span></div>
+                <div class="table-scroll" tabindex="0" role="region" aria-label="Recent transaction table; scroll horizontally on small screens">
+                    <table><caption class="sr-only">Fictional recent transactions</caption><thead><tr><th scope="col">Transaction</th><th scope="col">Category</th><th scope="col">Date</th><th scope="col" class="amount">Amount</th></tr></thead>
+                    <tbody>{% for transaction in transactions %}<tr>
+                        <td><div class="transaction-name"><span class="icon-tile {% if transaction.income %}income{% endif %}"><svg class="icon" aria-hidden="true"><use href="{% if transaction.income %}#icon-income{% elif transaction.category == 'Groceries' %}#icon-cart{% elif transaction.category == 'Dining' %}#icon-coffee{% elif transaction.category == 'Transport' %}#icon-fuel{% else %}#icon-ledger{% endif %}"/></svg></span><span>{{ transaction.name }}</span></div></td>
+                        <td class="category">{{ transaction.category }}</td><td class="transaction-date">{{ transaction.date }}</td><td class="amount {% if transaction.income %}income{% endif %}">{{ transaction.amount }}</td>
+                    </tr>{% empty %}<tr><td colspan="4" class="empty-state">No transactions to display.</td></tr>{% endfor %}</tbody></table>
+                </div>
+                <p class="panel-footnote">Latest sample entries, not the full monthly history.</p>
+            </section>
+            <section class="panel budgets-panel" id="budgets" aria-labelledby="budgets-title">
+                <div class="panel-heading"><h2 id="budgets-title">Monthly budgets</h2><span class="small-label">September</span></div>
+                <div class="budget-list">{% for budget in budgets %}<div class="budget-row">
+                    <span class="icon-tile"><svg class="icon" aria-hidden="true"><use href="{% if budget.name == 'Groceries' %}#icon-cart{% elif budget.name == 'Dining out' %}#icon-coffee{% else %}#icon-fuel{% endif %}"/></svg></span>
+                    <div class="budget-content"><div class="budget-label"><span>{{ budget.name }}</span><span class="budget-amount"><strong>${{ budget.spent }}</strong><span> / ${{ budget.limit }}</span></span></div><progress value="{{ budget.spent }}" max="{{ budget.limit }}" aria-label="{{ budget.name }} spending">{{ budget.percent }}%</progress><div class="budget-meta"><span>${{ budget.remaining }} remaining</span><span>{{ budget.percent }}%</span></div></div>
+                </div>{% empty %}<p class="empty-state">No budgets to display.</p>{% endfor %}</div>
+            </section>
+        </div>
+    </main>
+    <footer class="dashboard-footer"><span>Illustrative financial data · Same sample figures for all accounts.</span><span>Discipline today. Options tomorrow.</span></footer>
 </div>
 {% endblock %}
