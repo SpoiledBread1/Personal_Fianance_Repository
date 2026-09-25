@@ -1,3 +1,12 @@
 from django.contrib import admin
+from .models import AccountType, Account, Category, Payee, Tag, Transaction, Budget
 
-# Register your models here.
+admin.site.register([
+    AccountType,
+    Account,
+    Category,
+    Payee,
+    Tag,
+    Transaction,
+    Budget,
+])
