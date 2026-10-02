@@ -38,6 +38,7 @@
             <input type="hidden" name="next" value="{{ next }}">
             <button class="button button-gold login-submit" type="submit">Log in <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
         </form>
+        <a class="button button-outline login-submit" href="{% url 'finance:signup' %}">Create Account</a>
         <p class="form-note">Use your project account to continue.</p>
     </section>
 </main>

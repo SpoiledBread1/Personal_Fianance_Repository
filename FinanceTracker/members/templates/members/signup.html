@@ -1,0 +1,39 @@
+{% extends 'members/base.html' %}
+{% block title %}Create Account · Finance Hub{% endblock %}
+{% block body_class %}login-page{% endblock %}
+{% block layout %}
+<header class="login-header">
+    <a class="wordmark" href="{% url 'finance:dashboard' %}" aria-label="Finance Hub home">
+        <span class="monogram" aria-hidden="true">F</span><span>Finance Hub</span>
+    </a>
+</header>
+<main id="main-content" class="login-main">
+    <section class="login-intro" aria-labelledby="intro-title">
+        <p class="eyebrow gold">Your financial overview</p>
+        <h1 id="intro-title">Clarity<br> starts here.</h1>
+        <p class="intro-copy">Create an account to see your spending,<br class="desktop-break"> balances, and goals.</p>
+        <span class="accent-rule" aria-hidden="true"></span>
+    </section>
+    <section class="login-panel" aria-labelledby="signup-title">
+        <p class="eyebrow gold">Get started</p>
+        <h2 id="signup-title">Create your account</h2>
+        {% if form.non_field_errors %}
+            <div class="form-error" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <form method="post" action="{% url 'finance:signup' %}">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-field">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.help_text %}<div class="form-note">{{ field.help_text|safe }}</div>{% endif %}
+                    {% for error in field.errors %}<div class="form-error" role="alert">{{ error }}</div>{% endfor %}
+                </div>
+            {% endfor %}
+            <button class="button button-gold login-submit" type="submit">Create Account <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+        </form>
+        <p class="form-note"><a href="{% url 'finance:login' %}">Already have an account? Log in</a></p>
+    </section>
+</main>
+<footer class="login-footer">Finance Hub <span aria-hidden="true">·</span> Personal finance, considered.</footer>
+{% endblock %}
