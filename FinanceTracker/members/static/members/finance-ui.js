@@ -25,3 +25,15 @@ function updateNavigation() {
 }
 window.addEventListener('hashchange', updateNavigation);
 updateNavigation();
+
+document.querySelectorAll('[data-open-dialog]').forEach(button => {
+    button.addEventListener('click', () => {
+        document.getElementById(button.dataset.openDialog)?.showModal();
+    });
+});
+
+document.querySelectorAll('[data-close-dialog]').forEach(button => {
+    button.addEventListener('click', () => button.closest('dialog')?.close());
+});
+
+document.querySelector('dialog[data-reopen]')?.showModal();

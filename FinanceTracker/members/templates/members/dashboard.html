@@ -24,12 +24,13 @@
     <main id="main-content" class="dashboard-main">
         <section id="overview" class="dashboard-heading" aria-labelledby="dashboard-title">
             <div><h1 id="dashboard-title">Welcome back, {{ user.first_name|default:user.username }}.</h1><p>A clearer view of your money.</p></div>
-            <div class="planned-action"><button class="button button-outline" type="button" disabled aria-describedby="entry-note"><span aria-hidden="true">+</span> Add transaction</button><span id="entry-note">Transaction entry · coming next</span></div>
+            <div class="planned-action"><button class="button button-outline" type="button" data-open-dialog="transaction-dialog"><span aria-hidden="true">+</span> Add transaction</button></div>
         </section>
+        {% if messages %}<div class="dashboard-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
         <div class="overview-grid">
             <section class="panel cash-panel" id="balances" aria-labelledby="cash-title">
                 <div class="cash-copy"><p class="eyebrow" id="cash-title">Available cash</p><p class="cash-amount">${{ available_cash|floatformat:2 }}</p><p class="cash-subtitle">Across {{ accounts|length }} account{{ accounts|length|pluralize }}</p><div class="cash-footnote"><span class="gold">Your financial picture</span><p>Balances from your connected accounts.</p></div></div>
-                <div class="cash-chart"><figcaption>Accounts <span>{{ accounts|length }} total</span></figcaption>{% for account in accounts %}<div class="budget-label"><span>{{ account.account_name }}</span><span class="budget-amount">{{ account.currency }} {{ account.current_balance|floatformat:2 }}</span></div>{% empty %}<p class="empty-state">No accounts to display.</p>{% endfor %}</div>
+                <div class="cash-chart"><div class="accounts-heading"><figcaption>Accounts <span>{{ accounts|length }} total</span></figcaption><button class="text-button" type="button" data-open-dialog="account-dialog">+ Add account</button></div>{% for account in accounts %}<div class="budget-label"><span>{{ account.account_name }}</span><span class="budget-amount">{{ account.currency }} {{ account.current_balance|floatformat:2 }}</span></div>{% empty %}<p class="empty-state">No accounts to display.</p>{% endfor %}</div>
             </section>
             <section class="panel metrics-panel" aria-label="Monthly summary">
                 <div class="metric"><p class="eyebrow">Monthly spending</p><p class="metric-value"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg>${{ monthly_spending|floatformat:2 }}</p></div>
@@ -60,4 +61,27 @@
     </main>
     <footer class="dashboard-footer"><span>Your private financial overview.</span><span>Discipline today. Options tomorrow.</span></footer>
 </div>
+<dialog class="entry-dialog" id="transaction-dialog" aria-labelledby="transaction-dialog-title" {% if open_dialog == 'transaction-dialog' %}data-reopen{% endif %}>
+    <form method="post" action="{% url 'finance:dashboard' %}" class="entry-form">
+        {% csrf_token %}<input type="hidden" name="action" value="transaction">
+        <div class="dialog-heading"><div><p class="eyebrow">Ledger entry</p><h2 id="transaction-dialog-title">Add transaction</h2></div><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button></div>
+        {% if transaction_form.non_field_errors %}<div class="form-error" role="alert">{{ transaction_form.non_field_errors }}</div>{% endif %}
+        <div class="entry-fields">
+            {% for field in transaction_form %}<div class="entry-field{% if field.name == 'description' %} field-wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
+        </div>
+        {% if not accounts %}<p class="form-hint">Add an account before recording a transaction.</p>{% endif %}
+        <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit"{% if not accounts %} disabled{% endif %}>Save transaction</button></div>
+    </form>
+</dialog>
+<dialog class="entry-dialog" id="account-dialog" aria-labelledby="account-dialog-title" {% if open_dialog == 'account-dialog' %}data-reopen{% endif %}>
+    <form method="post" action="{% url 'finance:dashboard' %}" class="entry-form">
+        {% csrf_token %}<input type="hidden" name="action" value="account">
+        <div class="dialog-heading"><div><p class="eyebrow">Your accounts</p><h2 id="account-dialog-title">Add account</h2></div><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button></div>
+        {% if account_form.non_field_errors %}<div class="form-error" role="alert">{{ account_form.non_field_errors }}</div>{% endif %}
+        <div class="entry-fields">
+            {% for field in account_form %}<div class="entry-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
+        </div>
+        <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit">Save account</button></div>
+    </form>
+</dialog>
 {% endblock %}

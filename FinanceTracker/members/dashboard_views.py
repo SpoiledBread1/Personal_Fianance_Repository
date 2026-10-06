@@ -1,13 +1,43 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
-from django.db.models import Q, Sum
+from django.contrib import messages
+from django.db import transaction
+from django.db.models import F, Q, Sum
+from django.shortcuts import redirect, render
 from django.utils import timezone
 
+from .forms import AccountForm, TransactionForm
 from .models import Account, Budget, Transaction
 
 
 @login_required
 def dashboard(request):
+    transaction_form = TransactionForm(user=request.user)
+    account_form = AccountForm()
+    open_dialog = ""
+    if request.method == "POST":
+        if request.POST.get("action") == "transaction":
+            transaction_form = TransactionForm(request.POST, user=request.user)
+            if transaction_form.is_valid():
+                with transaction.atomic():
+                    entry = transaction_form.save()
+                    balance_change = entry.amount
+                    if entry.transaction_type == Transaction.TransactionType.DEBIT:
+                        balance_change = -balance_change
+                    Account.objects.filter(
+                        pk=entry.account_id, user=request.user
+                    ).update(current_balance=F("current_balance") + balance_change)
+                messages.success(request, "Transaction added.")
+                return redirect("finance:dashboard")
+            open_dialog = "transaction-dialog"
+        elif request.POST.get("action") == "account":
+            account_form = AccountForm(request.POST)
+            if account_form.is_valid():
+                with transaction.atomic():
+                    account_form.save(request.user)
+                messages.success(request, "Account added.")
+                return redirect("finance:dashboard")
+            open_dialog = "account-dialog"
+
     today = timezone.localdate()
     month_start = today.replace(day=1)
     user_accounts = Account.objects.filter(user=request.user)
@@ -54,5 +84,8 @@ def dashboard(request):
         "budget_remaining": budget_remaining,
         "credit_card_balance": credit_card_balance,
         "current_month": today.strftime("%B %Y"),
+        "transaction_form": transaction_form,
+        "account_form": account_form,
+        "open_dialog": open_dialog,
     }
     return render(request, "members/dashboard.html", context)
