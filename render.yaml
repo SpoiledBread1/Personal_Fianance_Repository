@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: finance-hub-demo-aidan
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python FinanceTracker/manage.py collectstatic --no-input
+    preDeployCommand: python FinanceTracker/manage.py migrate
+    startCommand: gunicorn --chdir FinanceTracker FinanceTracker.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: finance-hub-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: "3.13.12"
+
+databases:
+  - name: finance-hub-db
+    plan: free
