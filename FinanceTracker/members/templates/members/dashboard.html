@@ -51,7 +51,7 @@
                 <p class="panel-footnote">Showing the 10 most recent entries.</p>
             </section>
             <section class="panel budgets-panel" id="budgets" aria-labelledby="budgets-title">
-                <div class="panel-heading"><h2 id="budgets-title">Monthly budgets</h2><span class="small-label">September</span></div>
+                <div class="panel-heading"><h2 id="budgets-title">Monthly budgets</h2><div class="budget-heading-actions"><span class="small-label">{{ current_month }}</span><button class="text-button" type="button" data-open-dialog="budget-dialog">+ Set up budget</button></div></div>
                 <div class="budget-list">{% for budget in budgets %}<div class="budget-row">
                     <span class="icon-tile"><svg class="icon" aria-hidden="true"><use href="{% if budget.name == 'Groceries' %}#icon-cart{% elif budget.name == 'Dining out' %}#icon-coffee{% else %}#icon-fuel{% endif %}"/></svg></span>
                     <div class="budget-content"><div class="budget-label"><span>{{ budget.name }}</span><span class="budget-amount"><strong>${{ budget.spent }}</strong><span> / ${{ budget.limit }}</span></span></div><progress value="{{ budget.spent }}" max="{{ budget.limit }}" aria-label="{{ budget.name }} spending">{{ budget.percent }}%</progress><div class="budget-meta"><span>${{ budget.remaining }} remaining</span><span>{{ budget.percent }}%</span></div></div>
@@ -82,6 +82,19 @@
             {% for field in account_form %}<div class="entry-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
         </div>
         <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit">Save account</button></div>
+    </form>
+</dialog>
+<dialog class="entry-dialog" id="budget-dialog" aria-labelledby="budget-dialog-title" {% if open_dialog == 'budget-dialog' %}data-reopen{% endif %}>
+    <form method="post" action="{% url 'finance:dashboard' %}" class="entry-form">
+        {% csrf_token %}<input type="hidden" name="action" value="budget">
+        <div class="dialog-heading"><div><p class="eyebrow">Categories &amp; planning</p><h2 id="budget-dialog-title">Set up monthly budget</h2></div><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button></div>
+        {% if budget_form.non_field_errors %}<div class="form-error" role="alert">{{ budget_form.non_field_errors }}</div>{% endif %}
+        <div class="entry-fields">
+            {% for field in budget_form %}<div class="entry-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
+        </div>
+        <datalist id="budget-category-options">{% for category in categories %}<option value="{{ category.category_name }}">{% endfor %}</datalist>
+        <p class="form-hint">Choose an existing category or enter a new one. Categories are available when you add a transaction.</p>
+        <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit">Save monthly budget</button></div>
     </form>
 </dialog>
 {% endblock %}

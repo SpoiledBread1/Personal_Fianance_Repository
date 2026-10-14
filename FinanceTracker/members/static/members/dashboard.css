@@ -152,6 +152,7 @@ svg { display: block; }
 .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 21px 0 17px; }
 .panel-heading h2 { font-size: 24px; letter-spacing: -.4px; }
 .small-label { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.budget-heading-actions { display: flex; align-items: center; gap: 14px; }
 .table-scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; white-space: nowrap; }
 th { text-align: left; font-size: 8px; text-transform: uppercase; letter-spacing: 2px; font-weight: 400; color: #c5cccc; padding: 13px 12px 13px 0; border-top: 1px solid var(--line); border-bottom: 1px solid #424949; }

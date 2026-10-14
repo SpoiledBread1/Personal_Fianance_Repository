@@ -5,14 +5,15 @@ from django.db.models import F, Q, Sum
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from .forms import AccountForm, TransactionForm
-from .models import Account, Budget, Transaction
+from .forms import AccountForm, BudgetForm, TransactionForm
+from .models import Account, Budget, Category, Transaction
 
 
 @login_required
 def dashboard(request):
     transaction_form = TransactionForm(user=request.user)
     account_form = AccountForm()
+    budget_form = BudgetForm()
     open_dialog = ""
     if request.method == "POST":
         if request.POST.get("action") == "transaction":
@@ -37,6 +38,14 @@ def dashboard(request):
                 messages.success(request, "Account added.")
                 return redirect("finance:dashboard")
             open_dialog = "account-dialog"
+        elif request.POST.get("action") == "budget":
+            budget_form = BudgetForm(request.POST)
+            if budget_form.is_valid():
+                with transaction.atomic():
+                    budget_form.save(request.user)
+                messages.success(request, "Monthly budget saved.")
+                return redirect("finance:dashboard")
+            open_dialog = "budget-dialog"
 
     today = timezone.localdate()
     month_start = today.replace(day=1)
@@ -47,7 +56,9 @@ def dashboard(request):
         "category", "payee", "account"
     ).order_by("-transaction_date", "-created_at")[:10]
     budgets = []
-    for budget in Budget.objects.filter(user=request.user).select_related("category"):
+    for budget in Budget.objects.filter(
+        user=request.user, period_start__lte=today, period_end__gte=today
+    ).select_related("category"):
         spent = user_transactions.filter(
             category=budget.category,
             transaction_type=Transaction.TransactionType.DEBIT,
@@ -86,6 +97,8 @@ def dashboard(request):
         "current_month": today.strftime("%B %Y"),
         "transaction_form": transaction_form,
         "account_form": account_form,
+        "budget_form": budget_form,
+        "categories": Category.objects.order_by("category_name"),
         "open_dialog": open_dialog,
     }
     return render(request, "members/dashboard.html", context)

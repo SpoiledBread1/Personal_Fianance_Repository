@@ -1,7 +1,9 @@
+from datetime import timedelta
+
 from django import forms
 from django.utils import timezone
 
-from .models import Account, AccountType, Category, Transaction
+from .models import Account, AccountType, Budget, Category, Transaction
 
 
 class TransactionForm(forms.ModelForm):
@@ -66,3 +68,44 @@ class AccountForm(forms.Form):
             current_balance=self.cleaned_data["opening_balance"],
             currency=self.cleaned_data["currency"],
         )
+
+
+class BudgetForm(forms.Form):
+    category_name = forms.CharField(
+        max_length=100,
+        label="Category",
+        widget=forms.TextInput(
+            attrs={
+                "list": "budget-category-options",
+                "placeholder": "e.g. Grocery Shopping",
+                "autocomplete": "off",
+            }
+        ),
+    )
+    amount = forms.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        min_value=0.01,
+        label="Monthly limit",
+        widget=forms.NumberInput(attrs={"min": "0.01", "step": "0.01"}),
+    )
+
+    def save(self, user):
+        category_name = self.cleaned_data["category_name"].strip()
+        category = Category.objects.filter(
+            category_name__iexact=category_name
+        ).first()
+        if category is None:
+            category = Category.objects.create(category_name=category_name)
+
+        today = timezone.localdate()
+        period_start = today.replace(day=1)
+        next_month = (period_start.replace(day=28) + timedelta(days=4)).replace(day=1)
+        period_end = next_month - timedelta(days=1)
+        return Budget.objects.update_or_create(
+            user=user,
+            category=category,
+            period_start=period_start,
+            period_end=period_end,
+            defaults={"amount": self.cleaned_data["amount"]},
+        )[0]
