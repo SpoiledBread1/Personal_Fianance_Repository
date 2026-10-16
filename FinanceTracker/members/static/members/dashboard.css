@@ -275,4 +275,24 @@ progress::-moz-progress-bar { background: #c9ad74; border-radius: 6px; }
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after { transition: none !important; }
+    /* Sable branding */
+    .sable-logo {
+        display: block;
+        width: 52px;
+        height: 52px;
+        object-fit: contain;
+        flex-shrink: 0;
+    }
+
+    .sidebar-brand .sable-logo {
+        width: 64px;
+        height: 64px;
+    }
+
+    @media (max-width: 900px) {
+        .wordmark .sable-logo {
+            width: 40px;
+            height: 40px;
+        }
+    }
 }

@@ -1,10 +1,18 @@
 {% extends 'members/base.html' %}
+{% load static %}
 {% block title %}Log in · Sable{% endblock %}
 {% block body_class %}login-page{% endblock %}
 {% block layout %}
 <header class="login-header">
-    <a class="wordmark" href="{% url 'finance:dashboard' %}" aria-label="Finance Hub home">
-        <span class="monogram" aria-hidden="true">F</span><span>Sable</span>
+    <a class="wordmark" href="{% url 'finance:dashboard' %}" aria-label="Sable home">
+        <img
+                class="sable-logo"
+                src="{% static 'members/sable-logo.png' %}"
+                alt=""
+                width="64"
+                height="64"
+        >
+        <span>Sable</span>
     </a>
 </header>
 <main id="main-content" class="login-main">

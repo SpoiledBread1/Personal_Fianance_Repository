@@ -1,9 +1,18 @@
 {% extends 'members/base.html' %}
+{% load static %}
 {% block title %}Overview · Sable{% endblock %}
 {% block body_class %}dashboard-page{% endblock %}
 {% block layout %}
 <aside class="sidebar">
-    <a class="wordmark sidebar-brand" href="{% url 'finance:dashboard' %}" aria-label="Finance Hub overview"><span class="monogram" aria-hidden="true">F</span><span>Sable</span></a>
+    <a class="wordmark sidebar-brand" href="{% url 'finance:dashboard' %}" aria-label="Sable overview"><img
+            class="sable-logo"
+            src="{% static 'members/sable-logo.png' %}"
+            alt=""
+            width="64"
+            height="64"
+    >
+        <span>Sable</span>
+    </a>
     <p class="nav-label">Workspace</p>
     <nav aria-label="Dashboard sections">
         <a class="nav-link active" href="#overview" aria-current="location"><svg class="icon" aria-hidden="true"><use href="#icon-overview"/></svg><span>Overview</span></a>
