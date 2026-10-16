@@ -1,54 +1,73 @@
 {% extends 'members/base.html' %}
 {% load static %}
+
 {% block title %}Log in · Sable{% endblock %}
-{% block body_class %}login-page{% endblock %}
+{% block body_class %}login-page sable-login{% endblock %}
+
 {% block layout %}
-<header class="login-header">
-    <a class="wordmark" href="{% url 'finance:dashboard' %}" aria-label="Sable home">
-        <img
-                class="sable-logo"
-                src="{% static 'members/sable-logo.png' %}"
-                alt=""
-                width="64"
-                height="64"
-        >
-        <span>Sable</span>
-    </a>
-</header>
-<main id="main-content" class="login-main">
-    <section class="login-intro" aria-labelledby="intro-title">
-        <p class="eyebrow gold">Your financial overview</p>
-        <h1 id="intro-title">Clarity<br> starts here.</h1>
-        <p class="intro-copy">Sign in to see your spending,<br class="desktop-break"> balances, and goals.</p>
-        <span class="accent-rule" aria-hidden="true"></span>
+<main id="main-content" class="sable-login-shell">
+    <section class="sable-login-intro" aria-labelledby="sable-intro-title">
+        <p class="sable-kicker">Personal finance</p>
+
+        <a class="sable-wordmark-link" href="{% url 'finance:dashboard' %}" aria-label="Sable home">
+            <span class="sable-wordmark-frame">
+                <img class="sable-wordmark-image"
+                     src="{% static 'members/sable/sable-wordmark.png' %}"
+                     alt="" width="2172" height="724">
+            </span>
+        </a>
+
+        <h1 id="sable-intro-title">A clearer view<br>of your money.</h1>
+        <p class="sable-intro-copy">Spending, balances, and goals. Together.</p>
     </section>
-    <section class="login-panel" aria-labelledby="login-title">
-        <p class="eyebrow gold">Welcome back</p>
-        <h2 id="login-title">Log in to Finance Hub</h2>
+
+    <section class="sable-login-form-panel" aria-labelledby="sable-login-title">
+        <h2 id="sable-login-title">Welcome back.</h2>
+        <p class="sable-form-subtitle">Log in to your account.</p>
+
         {% if form.errors %}
-            <div class="form-error" role="alert">Login unsuccessful. Check your username and password.</div>
-        {% endif %}
-        <form method="post" action="{% url 'finance:login' %}">
-            {% csrf_token %}
-            <div class="form-field">
-                <label for="id_username">Username</label>
-                <input id="id_username" name="username" type="text" value="{{ form.username.value|default_if_none:'' }}" placeholder="Enter your username" autocomplete="username" maxlength="150" required>
+            <div class="sable-form-error" id="sable-login-error" role="alert">
+                Login unsuccessful. Check your username and password.
             </div>
-            <div class="form-field">
+        {% endif %}
+
+        <form class="sable-form" method="post" action="{% url 'finance:login' %}">
+            {% csrf_token %}
+            <div class="sable-field">
+                <label for="id_username">Username</label>
+                <input id="id_username" name="username" type="text"
+                       value="{{ form.username.value|default_if_none:'' }}"
+                       placeholder="Enter your username" autocomplete="username"
+                       autocapitalize="none" spellcheck="false" maxlength="150" required
+                       {% if form.errors %}aria-invalid="true" aria-describedby="sable-login-error"{% endif %}>
+            </div>
+
+            <div class="sable-field">
                 <label for="id_password">Password</label>
-                <div class="password-field">
-                    <input id="id_password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
-                    <button class="password-toggle" type="button" aria-label="Show password" aria-controls="id_password" aria-pressed="false" hidden>
-                        <svg class="icon" aria-hidden="true"><use href="#icon-eye"/></svg>
+                <div class="sable-password-field">
+                    <input id="id_password" name="password" type="password"
+                           placeholder="Enter your password" autocomplete="current-password" required
+                           {% if form.errors %}aria-invalid="true" aria-describedby="sable-login-error"{% endif %}>
+                    <button class="password-toggle" type="button" hidden
+                            aria-label="Show password" aria-controls="id_password" aria-pressed="false">
+                        <svg class="sable-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
                     </button>
                 </div>
             </div>
-            <input type="hidden" name="next" value="{{ next }}">
-            <button class="button button-gold login-submit" type="submit">Log in <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+
+            <input type="hidden" name="next" value="{{ next|default:'' }}">
+            <button class="sable-login-submit" type="submit">
+                <span>Log in</span>
+                <svg class="sable-ui-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 12h16M14 6l6 6-6 6"/>
+                </svg>
+            </button>
         </form>
-        <a class="button button-outline login-submit" href="{% url 'finance:signup' %}">Create Account</a>
-        <p class="form-note">Use your project account to continue.</p>
     </section>
 </main>
-<footer class="login-footer">Finance Hub <span aria-hidden="true">·</span> Personal finance, considered.</footer>
+
+<footer class="sable-login-footer">Personal finance, considered.</footer>
 {% endblock %}

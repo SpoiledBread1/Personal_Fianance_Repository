@@ -4,14 +4,16 @@
 {% block body_class %}dashboard-page{% endblock %}
 {% block layout %}
 <aside class="sidebar">
-    <a class="wordmark sidebar-brand" href="{% url 'finance:dashboard' %}" aria-label="Sable overview"><img
-            class="sable-logo"
-            src="{% static 'members/sable-logo.png' %}"
-            alt=""
-            width="64"
-            height="64"
-    >
-        <span>Sable</span>
+    <a class="sidebar-brand sable-sidebar-brand"
+       href="{% url 'finance:dashboard' %}"
+       aria-label="Sable overview">
+    <span class="sable-symbol-frame" aria-hidden="true">
+        <img class="sable-symbol-image"
+             src="{% static 'members/sable/sable-symbol.png' %}"
+             alt=""
+             width="1254"
+             height="1254">
+    </span>
     </a>
     <p class="nav-label">Workspace</p>
     <nav aria-label="Dashboard sections">
