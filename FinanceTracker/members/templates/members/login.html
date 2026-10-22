@@ -27,17 +27,17 @@
 
         {% if form.errors %}
             <div class="sable-form-error" id="sable-login-error" role="alert">
-                Login unsuccessful. Check your username and password.
+                Login unsuccessful. Check your email and password.
             </div>
         {% endif %}
 
         <form class="sable-form" method="post" action="{% url 'finance:login' %}">
             {% csrf_token %}
             <div class="sable-field">
-                <label for="id_username">Username</label>
-                <input id="id_username" name="username" type="text"
+                <label for="id_username">Email</label>
+                <input id="id_username" name="username" type="email"
                        value="{{ form.username.value|default_if_none:'' }}"
-                       placeholder="Enter your username" autocomplete="username"
+                       placeholder="Enter your email" autocomplete="email"
                        autocapitalize="none" spellcheck="false" maxlength="150" required
                        {% if form.errors %}aria-invalid="true" aria-describedby="sable-login-error"{% endif %}>
             </div>
@@ -66,6 +66,8 @@
                 </svg>
             </button>
         </form>
+
+        <p class="sable-signup-link">New to Sable? <a href="{% url 'finance:signup' %}">Create an account</a></p>
     </section>
 </main>
 

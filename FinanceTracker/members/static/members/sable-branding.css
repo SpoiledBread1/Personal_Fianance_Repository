@@ -114,6 +114,10 @@ body.sable-login {
     margin-bottom: 25px;
 }
 
+.sable-signup-panel .sable-field {
+    margin-bottom: 18px;
+}
+
 .sable-field label {
     display: block;
     margin-bottom: 9px;
@@ -121,7 +125,8 @@ body.sable-login {
     line-height: 1.5;
 }
 
-.sable-field input {
+.sable-field input,
+.sable-field select {
     display: block;
     box-sizing: border-box;
     width: 100%;
@@ -141,7 +146,8 @@ body.sable-login {
     opacity: 1;
 }
 
-.sable-field input:focus-visible {
+.sable-field input:focus-visible,
+.sable-field select:focus-visible {
     outline: 2px solid var(--sable-gold);
     outline-offset: 3px;
 }
@@ -234,6 +240,26 @@ body.sable-login {
     color: #ffd0c5;
     font-size: 14px;
     line-height: 1.6;
+}
+
+.sable-field-error {
+    margin: 8px 0 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.sable-signup-link {
+    margin: 24px 0 0;
+    color: var(--sable-muted);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.sable-signup-link a {
+    color: var(--sable-gold);
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .sable-login-footer {

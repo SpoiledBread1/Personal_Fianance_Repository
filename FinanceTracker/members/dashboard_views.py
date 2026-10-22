@@ -5,7 +5,7 @@ from django.db.models import F, Q, Sum
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
-from .forms import AccountForm, TransactionForm
+from .forms import AccountForm, BudgetForm, TransactionForm
 from .models import Account, Budget, Transaction
 
 
@@ -13,6 +13,7 @@ from .models import Account, Budget, Transaction
 def dashboard(request):
     transaction_form = TransactionForm(user=request.user)
     account_form = AccountForm()
+    budget_form = BudgetForm(user=request.user)
     open_dialog = ""
     if request.method == "POST":
         if request.POST.get("action") == "transaction":
@@ -37,6 +38,14 @@ def dashboard(request):
                 messages.success(request, "Account added.")
                 return redirect("finance:dashboard")
             open_dialog = "account-dialog"
+        elif request.POST.get("action") == "budget":
+            budget_form = BudgetForm(request.POST, user=request.user)
+            if budget_form.is_valid():
+                with transaction.atomic():
+                    budget_form.save()
+                messages.success(request, "Budget added.")
+                return redirect("finance:dashboard")
+            open_dialog = "budget-dialog"
 
     today = timezone.localdate()
     month_start = today.replace(day=1)
@@ -86,6 +95,7 @@ def dashboard(request):
         "current_month": today.strftime("%B %Y"),
         "transaction_form": transaction_form,
         "account_form": account_form,
+        "budget_form": budget_form,
         "open_dialog": open_dialog,
     }
     return render(request, "members/dashboard.html", context)

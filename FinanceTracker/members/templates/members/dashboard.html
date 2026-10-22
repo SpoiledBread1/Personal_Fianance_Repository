@@ -35,7 +35,7 @@
     <main id="main-content" class="dashboard-main">
         <section id="overview" class="dashboard-heading" aria-labelledby="dashboard-title">
             <div><h1 id="dashboard-title">Welcome back, {{ user.first_name|default:user.username }}.</h1><p>A clearer view of your money.</p></div>
-            <div class="planned-action"><button class="button button-outline" type="button" data-open-dialog="transaction-dialog"><span aria-hidden="true">+</span> Add transaction</button></div>
+            <div class="planned-action"><button class="button button-outline" type="button" data-open-dialog="budget-dialog"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg> Add budget</button><button class="button button-outline" type="button" data-open-dialog="transaction-dialog"><span aria-hidden="true">+</span> Add transaction</button></div>
         </section>
         {% if messages %}<div class="dashboard-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
         <div class="overview-grid">
@@ -62,7 +62,7 @@
                 <p class="panel-footnote">Showing the 10 most recent entries.</p>
             </section>
             <section class="panel budgets-panel" id="budgets" aria-labelledby="budgets-title">
-                <div class="panel-heading"><h2 id="budgets-title">Monthly budgets</h2><span class="small-label">September</span></div>
+                <div class="panel-heading"><h2 id="budgets-title">Budgets</h2><span class="small-label">{{ current_month }}</span></div>
                 <div class="budget-list">{% for budget in budgets %}<div class="budget-row">
                     <span class="icon-tile"><svg class="icon" aria-hidden="true"><use href="{% if budget.name == 'Groceries' %}#icon-cart{% elif budget.name == 'Dining out' %}#icon-coffee{% else %}#icon-fuel{% endif %}"/></svg></span>
                     <div class="budget-content"><div class="budget-label"><span>{{ budget.name }}</span><span class="budget-amount"><strong>${{ budget.spent }}</strong><span> / ${{ budget.limit }}</span></span></div><progress value="{{ budget.spent }}" max="{{ budget.limit }}" aria-label="{{ budget.name }} spending">{{ budget.percent }}%</progress><div class="budget-meta"><span>${{ budget.remaining }} remaining</span><span>{{ budget.percent }}%</span></div></div>
@@ -93,6 +93,17 @@
             {% for field in account_form %}<div class="entry-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
         </div>
         <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit">Save account</button></div>
+    </form>
+</dialog>
+<dialog class="entry-dialog" id="budget-dialog" aria-labelledby="budget-dialog-title" {% if open_dialog == 'budget-dialog' %}data-reopen{% endif %}>
+    <form method="post" action="{% url 'finance:dashboard' %}" class="entry-form">
+        {% csrf_token %}<input type="hidden" name="action" value="budget">
+        <div class="dialog-heading"><div><p class="eyebrow">Plan your spending</p><h2 id="budget-dialog-title">Add budget</h2></div><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button></div>
+        {% if budget_form.non_field_errors %}<div class="form-error" role="alert">{{ budget_form.non_field_errors }}</div>{% endif %}
+        <div class="entry-fields">
+            {% for field in budget_form %}<div class="entry-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
+        </div>
+        <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit">Save budget</button></div>
     </form>
 </dialog>
 {% endblock %}
