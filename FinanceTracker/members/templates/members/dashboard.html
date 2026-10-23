@@ -35,7 +35,7 @@
     <main id="main-content" class="dashboard-main">
         <section id="overview" class="dashboard-heading" aria-labelledby="dashboard-title">
             <div><h1 id="dashboard-title">Welcome back, {{ user.first_name|default:user.username }}.</h1><p>A clearer view of your money.</p></div>
-            <div class="planned-action"><button class="button button-outline" type="button" data-open-dialog="budget-dialog"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg> Add budget</button><button class="button button-outline" type="button" data-open-dialog="transaction-dialog"><span aria-hidden="true">+</span> Add transaction</button></div>
+            <div class="planned-action"><button class="button button-outline" type="button" data-open-dialog="transaction-dialog"><span aria-hidden="true">+</span> Add transaction</button><button class="button button-gold" type="button" data-open-dialog="budget-dialog"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg> Set up budget</button></div>
         </section>
         {% if messages %}<div class="dashboard-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
         <div class="overview-grid">
@@ -48,18 +48,28 @@
                 <div class="metric"><p class="eyebrow">Budget remaining</p><p class="metric-value"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg>${{ budget_remaining|floatformat:2 }}</p></div>
                 <div class="metric"><p class="eyebrow">Credit card balance</p><p class="metric-value"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg>${{ credit_card_balance|floatformat:2 }}</p></div>
             </section>
+            <section class="panel spending-panel" aria-labelledby="spending-chart-title">
+                <div class="panel-heading"><div><h2 id="spending-chart-title">Spending breakdown</h2><p class="small-label">{{ current_month }}</p></div></div>
+                {% if spending_chart %}
+                    <svg class="spending-pie" viewBox="0 0 200 200" role="img" aria-label="Monthly spending by category">
+                        {% for segment in spending_chart %}<path d="{{ segment.path }}" fill="{{ segment.color }}" stroke="#151a1c" stroke-width="2"><title>{{ segment.name }}: ${{ segment.amount|floatformat:2 }} ({{ segment.percent }}%)</title></path>{% endfor %}
+                    </svg>
+                    <ul class="spending-legend">{% for segment in spending_chart %}<li><span class="legend-swatch" style="--segment-color: {{ segment.color }}"></span><span>{{ segment.name }}</span><strong>${{ segment.amount|floatformat:2 }}</strong></li>{% endfor %}</ul>
+                {% else %}
+                    <p class="empty-state spending-empty">No spending recorded this month.</p>
+                {% endif %}
+            </section>
         </div>
         <div class="details-grid">
             <section class="panel transactions-panel" id="transactions" aria-labelledby="transactions-title">
                 <div class="panel-heading"><h2 id="transactions-title">Recent transactions</h2><span class="small-label">{{ transactions|length }} latest</span></div>
-                <div class="table-scroll" tabindex="0" role="region" aria-label="Recent transaction table; scroll horizontally on small screens">
-                    <table><caption class="sr-only">Recent transactions</caption><thead><tr><th scope="col">Transaction</th><th scope="col">Category</th><th scope="col">Date</th><th scope="col" class="amount">Amount</th></tr></thead>
-                    <tbody>{% for transaction in transactions %}<tr>
-                        <td><div class="transaction-name"><span class="icon-tile {% if transaction.transaction_type == 'credit' %}income{% endif %}"><svg class="icon" aria-hidden="true"><use href="{% if transaction.transaction_type == 'credit' %}#icon-income{% elif transaction.category.category_name == 'Groceries' %}#icon-cart{% elif transaction.category.category_name == 'Dining' %}#icon-coffee{% elif transaction.category.category_name == 'Transport' %}#icon-fuel{% else %}#icon-ledger{% endif %}"/></svg></span><span>{% if transaction.description %}{{ transaction.description }}{% elif transaction.payee %}{{ transaction.payee.payee_name }}{% else %}Transaction{% endif %}</span></div></td>
-                        <td class="category">{{ transaction.category.category_name|default:'Uncategorized' }}</td><td class="transaction-date">{{ transaction.transaction_date|date:'M j' }}</td><td class="amount {% if transaction.transaction_type == 'credit' %}income{% endif %}">{% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}${{ transaction.amount|floatformat:2 }}</td>
-                    </tr>{% empty %}<tr><td colspan="4" class="empty-state">No transactions to display.</td></tr>{% endfor %}</tbody></table>
-                </div>
-                <p class="panel-footnote">Showing the 10 most recent entries.</p>
+                <div class="transaction-list">{% for transaction in transactions %}
+                    <div class="transaction-row">
+                        <span class="icon-tile compact-icon {% if transaction.transaction_type == 'credit' %}income{% endif %}"><svg class="icon" aria-hidden="true"><use href="{% if transaction.transaction_type == 'credit' %}#icon-income{% elif transaction.category.category_name == 'Groceries' %}#icon-cart{% elif transaction.category.category_name == 'Dining' %}#icon-coffee{% elif transaction.category.category_name == 'Transport' %}#icon-fuel{% else %}#icon-ledger{% endif %}"/></svg></span>
+                        <div class="transaction-summary"><strong>{% if transaction.description %}{{ transaction.description }}{% elif transaction.payee %}{{ transaction.payee.payee_name }}{% else %}Transaction{% endif %}</strong><span>{{ transaction.category.category_name|default:'Uncategorized' }} · {{ transaction.transaction_date|date:'M j' }}</span></div>
+                        <strong class="transaction-amount {% if transaction.transaction_type == 'credit' %}income{% endif %}">{% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}${{ transaction.amount|floatformat:2 }}</strong>
+                    </div>
+                {% empty %}<p class="empty-state">No transactions to display.</p>{% endfor %}</div>
             </section>
             <section class="panel budgets-panel" id="budgets" aria-labelledby="budgets-title">
                 <div class="panel-heading"><h2 id="budgets-title">Budgets</h2><span class="small-label">{{ current_month }}</span></div>
@@ -78,7 +88,7 @@
         <div class="dialog-heading"><div><p class="eyebrow">Ledger entry</p><h2 id="transaction-dialog-title">Add transaction</h2></div><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button></div>
         {% if transaction_form.non_field_errors %}<div class="form-error" role="alert">{{ transaction_form.non_field_errors }}</div>{% endif %}
         <div class="entry-fields">
-            {% for field in transaction_form %}<div class="entry-field{% if field.name == 'description' %} field-wide{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
+            {% for field in transaction_form %}<div class="entry-field{% if field.name == 'description' %} field-wide{% endif %}{% if field.name == 'custom_category' %} category-custom-field{% endif %}"{% if field.name == 'custom_category' and transaction_form.category_name.value != '__new__' %} hidden{% endif %}><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
         </div>
         {% if not accounts %}<p class="form-hint">Add an account before recording a transaction.</p>{% endif %}
         <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit"{% if not accounts %} disabled{% endif %}>Save transaction</button></div>
@@ -101,8 +111,9 @@
         <div class="dialog-heading"><div><p class="eyebrow">Plan your spending</p><h2 id="budget-dialog-title">Add budget</h2></div><button class="dialog-close" type="button" data-close-dialog aria-label="Close">×</button></div>
         {% if budget_form.non_field_errors %}<div class="form-error" role="alert">{{ budget_form.non_field_errors }}</div>{% endif %}
         <div class="entry-fields">
-            {% for field in budget_form %}<div class="entry-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
+            {% for field in budget_form %}<div class="entry-field{% if field.name == 'custom_category' %} category-custom-field{% endif %}"{% if field.name == 'custom_category' and budget_form.category_name.value != '__new__' %} hidden{% endif %}><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
         </div>
+        <p class="form-hint">Choose a common category or select “Add a new category...” to create one. New categories are available when you add a transaction.</p>
         <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit">Save budget</button></div>
     </form>
 </dialog>

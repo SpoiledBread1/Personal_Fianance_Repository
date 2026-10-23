@@ -1,4 +1,4 @@
-from calendar import monthrange
+from datetime import timedelta
 
 from django import forms
 from django.contrib.auth import get_user_model
@@ -8,6 +8,49 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import Account, AccountType, Budget, Category, MemberProfile, Transaction
+
+
+CUSTOM_CATEGORY = "__new__"
+COMMON_CATEGORIES = (
+    "Groceries",
+    "Dining",
+    "Transport",
+    "Housing",
+    "Utilities",
+    "Healthcare",
+    "Entertainment",
+    "Shopping",
+    "Insurance",
+    "Education",
+    "Personal Care",
+    "Travel",
+    "Savings",
+)
+
+
+def category_choices(include_uncategorized=False):
+    choices = [("", "Uncategorized")] if include_uncategorized else []
+    known_names = set()
+    for name in COMMON_CATEGORIES:
+        choices.append((name, name))
+        known_names.add(name.casefold())
+    for name in Category.objects.order_by("category_name").values_list(
+        "category_name", flat=True
+    ):
+        if name.casefold() not in known_names:
+            choices.append((name, name))
+            known_names.add(name.casefold())
+    choices.append((CUSTOM_CATEGORY, "Add a new category..."))
+    return choices
+
+
+def resolve_category(name):
+    if not name:
+        return None
+    category = Category.objects.filter(category_name__iexact=name).first()
+    if category is None:
+        category = Category.objects.create(category_name=name)
+    return category
 
 
 class SignupForm(forms.Form):
@@ -87,6 +130,14 @@ class SignupForm(forms.Form):
 
 
 class TransactionForm(forms.ModelForm):
+    category_name = forms.ChoiceField(label="Category", required=False)
+    custom_category = forms.CharField(
+        label="New category",
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter a category name"}),
+    )
+
     class Meta:
         model = Transaction
         fields = (
@@ -94,13 +145,13 @@ class TransactionForm(forms.ModelForm):
             "transaction_type",
             "amount",
             "transaction_date",
-            "category",
             "description",
         )
         widgets = {
             "transaction_date": forms.DateInput(attrs={"type": "date"}),
             "amount": forms.NumberInput(attrs={"min": "0.01", "step": "0.01"}),
         }
+        labels = {"category_name": "Category"}
 
     def __init__(self, *args, user, **kwargs):
         super().__init__(*args, **kwargs)
@@ -108,20 +159,56 @@ class TransactionForm(forms.ModelForm):
         self.fields["account"].queryset = Account.objects.filter(user=user).order_by(
             "account_name"
         )
-        self.fields["category"].label = "Budget"
-        self.fields["category"].queryset = (
-            Category.objects.filter(budgets__user=user)
-            .order_by("category_name")
-            .distinct()
+        self.fields["category_name"].choices = category_choices(
+            include_uncategorized=True
         )
-        self.fields["category"].required = False
-        self.fields["category"].empty_label = "Unbudgeted"
+        self.order_fields(
+            (
+                "account",
+                "transaction_type",
+                "amount",
+                "transaction_date",
+                "category_name",
+                "custom_category",
+                "description",
+            )
+        )
 
     def clean_amount(self):
         amount = self.cleaned_data["amount"]
         if amount <= 0:
             raise forms.ValidationError("Enter an amount greater than zero.")
         return amount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        category_name = cleaned_data.get("category_name", "")
+        legacy_category_id = self.data.get(self.add_prefix("category"))
+        if not category_name and legacy_category_id:
+            legacy_category = Category.objects.filter(pk=legacy_category_id).first()
+            if legacy_category is None:
+                self.add_error("category_name", "Select a valid category.")
+            else:
+                category_name = legacy_category.category_name
+        if category_name == CUSTOM_CATEGORY:
+            custom_category = cleaned_data.get("custom_category", "").strip()
+            if not custom_category:
+                self.add_error("custom_category", "Enter a category name.")
+            else:
+                cleaned_data["resolved_category_name"] = custom_category
+        else:
+            cleaned_data["resolved_category_name"] = category_name
+        return cleaned_data
+
+    def save(self, commit=True):
+        entry = super().save(commit=False)
+        entry.category = resolve_category(
+            self.cleaned_data["resolved_category_name"]
+        )
+        if commit:
+            entry.save()
+            self.save_m2m()
+        return entry
 
 
 class AccountForm(forms.Form):
@@ -156,51 +243,62 @@ class AccountForm(forms.Form):
         )
 
 
-class BudgetForm(forms.ModelForm):
+class BudgetForm(forms.Form):
+    category_name = forms.ChoiceField(label="Budget category", required=False)
+    custom_category = forms.CharField(
+        label="New category",
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "Enter a category name"}),
+    )
     amount = forms.DecimalField(
         max_digits=12,
         decimal_places=2,
         min_value=0.01,
         widget=forms.NumberInput(attrs={"min": "0.01", "step": "0.01"}),
-        label="Budget amount",
+        label="Monthly limit",
     )
-
-    class Meta:
-        model = Budget
-        fields = ("category", "amount", "period_start", "period_end")
-        widgets = {
-            "period_start": forms.DateInput(attrs={"type": "date"}),
-            "period_end": forms.DateInput(attrs={"type": "date"}),
-        }
-        labels = {
-            "category": "Budget category",
-            "period_start": "Period start",
-            "period_end": "Period end",
-        }
 
     def __init__(self, *args, user, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-        today = timezone.localdate()
-        self.fields["category"].queryset = Category.objects.order_by("category_name")
-        self.fields["period_start"].initial = today.replace(day=1)
-        self.fields["period_end"].initial = today.replace(
-            day=monthrange(today.year, today.month)[1]
-        )
+        self.fields["category_name"].choices = [
+            ("", "Select a category"),
+            *category_choices(),
+        ]
 
     def clean(self):
         cleaned_data = super().clean()
-        period_start = cleaned_data.get("period_start")
-        period_end = cleaned_data.get("period_end")
-        if period_start and period_end and period_end < period_start:
-            self.add_error(
-                "period_end", "The end date must be on or after the start date."
-            )
+        category_name = cleaned_data.get("category_name", "")
+        legacy_category_id = self.data.get(self.add_prefix("category"))
+        if not category_name and legacy_category_id:
+            legacy_category = Category.objects.filter(pk=legacy_category_id).first()
+            if legacy_category is None:
+                self.add_error("category_name", "Select a valid category.")
+            else:
+                category_name = legacy_category.category_name
+        if category_name == CUSTOM_CATEGORY:
+            custom_category = cleaned_data.get("custom_category", "").strip()
+            if not custom_category:
+                self.add_error("custom_category", "Enter a category name.")
+            else:
+                cleaned_data["resolved_category_name"] = custom_category
+        elif category_name:
+            cleaned_data["resolved_category_name"] = category_name
+        else:
+            self.add_error("category_name", "Choose a budget category.")
         return cleaned_data
 
-    def save(self, commit=True):
-        budget = super().save(commit=False)
-        budget.user = self.user
-        if commit:
-            budget.save()
-        return budget
+    def save(self):
+        category = resolve_category(self.cleaned_data["resolved_category_name"])
+        today = timezone.localdate()
+        period_start = today.replace(day=1)
+        next_month = (period_start.replace(day=28) + timedelta(days=4)).replace(day=1)
+        period_end = next_month - timedelta(days=1)
+        return Budget.objects.update_or_create(
+            user=self.user,
+            category=category,
+            period_start=period_start,
+            period_end=period_end,
+            defaults={"amount": self.cleaned_data["amount"]},
+        )[0]
