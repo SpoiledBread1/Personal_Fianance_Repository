@@ -77,6 +77,54 @@ class MonthlyBudgetSetupTests(TestCase):
         self.assertEqual(Budget.objects.filter(user=self.user).count(), 1)
         self.assertEqual(Budget.objects.get(user=self.user).amount, Decimal("250.00"))
 
+    def test_custom_category_can_be_added_from_budget_selector(self):
+        response = self.client.post(
+            reverse("finance:dashboard"),
+            {
+                "action": "budget",
+                "category_name": "__new__",
+                "custom_category": "Pet Care",
+                "amount": "75.00",
+            },
+        )
+
+        self.assertRedirects(response, reverse("finance:dashboard"))
+        category = Category.objects.get(category_name="Pet Care")
+        self.assertEqual(
+            Budget.objects.get(user=self.user, category=category).amount,
+            Decimal("75.00"),
+        )
+
+    def test_custom_transaction_category_is_in_monthly_spending_chart(self):
+        account_type = AccountType.objects.create(type_name="Checking")
+        account = Account.objects.create(
+            user=self.user, account_type=account_type, account_name="Checking"
+        )
+        response = self.client.post(
+            reverse("finance:dashboard"),
+            {
+                "action": "transaction",
+                "account": account.pk,
+                "transaction_type": "debit",
+                "amount": "18.25",
+                "transaction_date": timezone.localdate().isoformat(),
+                "category_name": "__new__",
+                "custom_category": "Pet Care",
+                "description": "Pet food",
+            },
+        )
+
+        self.assertRedirects(response, reverse("finance:dashboard"))
+        dashboard_response = self.client.get(reverse("finance:dashboard"))
+        self.assertEqual(
+            dashboard_response.context["spending_chart"][0]["name"], "Pet Care"
+        )
+        self.assertEqual(
+            dashboard_response.context["spending_chart"][0]["amount"],
+            Decimal("18.25"),
+        )
+        self.assertContains(dashboard_response, "Spending breakdown")
+
     def test_nonpositive_monthly_limit_is_rejected(self):
         response = self.post_budget("Unplanned", "0")
 

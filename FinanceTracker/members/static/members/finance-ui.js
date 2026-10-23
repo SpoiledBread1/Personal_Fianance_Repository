@@ -36,4 +36,20 @@ document.querySelectorAll('[data-close-dialog]').forEach(button => {
     button.addEventListener('click', () => button.closest('dialog')?.close());
 });
 
+document.querySelectorAll('.entry-form select[name="category_name"]').forEach(select => {
+    const customField = select.form.querySelector('.category-custom-field');
+    const customInput = customField?.querySelector('input');
+    if (!customField || !customInput) return;
+
+    const updateCustomCategory = () => {
+        const showCustomField = select.value === '__new__';
+        customField.hidden = !showCustomField;
+        customInput.required = showCustomField;
+        if (!showCustomField) customInput.value = '';
+    };
+
+    select.addEventListener('change', updateCustomCategory);
+    updateCustomCategory();
+});
+
 document.querySelector('dialog[data-reopen]')?.showModal();
