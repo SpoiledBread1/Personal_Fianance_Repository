@@ -46,6 +46,8 @@ svg { display: block; }
 .button-outline:disabled { color: #c1af89; border-color: #685e48; }
 .skip-link { position: fixed; z-index: 100; top: 10px; left: 10px; transform: translateY(-200%); padding: 12px 18px; background: var(--gold); color: #111; }
 .skip-link:focus { transform: translateY(0); }
+.install-app-button { position: fixed; z-index: 20; right: 20px; bottom: max(20px, env(safe-area-inset-bottom)); min-height: 44px; padding: 10px 16px; border: 1px solid var(--gold); border-radius: 5px; background: var(--gold); color: #111517; font-weight: 600; box-shadow: 0 4px 18px #0008; }
+.install-app-button:hover { background: var(--gold-light); border-color: var(--gold-light); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* LOGIN: deliberate space and a quiet, two-column composition. */
@@ -106,6 +108,30 @@ svg { display: block; }
 .text-button { padding: 4px 0; border: 0; background: transparent; color: var(--gold-light); font-size: 11px; white-space: nowrap; }
 .text-button:hover { color: var(--text); }
 .dashboard-messages { margin: 0 0 18px; padding: 11px 15px; border-left: 2px solid var(--positive); background: #1b2420; color: var(--positive); }
+.market-news-section { margin-top: 34px; scroll-margin-top: 24px; }
+.market-news-heading { margin-bottom: 18px; }
+.market-news-heading h1 { font-size: clamp(30px, 3.1vw, 47px); }
+.market-updated { flex: 0 0 auto; color: var(--muted); font-size: 12px; }
+.market-status { margin-bottom: 14px; padding: 11px 14px; border-left: 2px solid var(--gold); background: #1b2020; color: #d4d9d5; font-size: 13px; }
+.market-status-error { border-left-color: #cc8a77; color: #ffd0c5; background: #2c1e1d; }
+.market-retry { min-height: 36px; margin-left: 12px; padding: 6px 12px; font-size: 12px; }
+.market-news-grid { display: grid; grid-template-columns: minmax(220px, .85fr) minmax(0, 1.6fr); gap: 18px; }
+.market-quotes-panel, .market-headlines-panel { padding: 5px 20px 18px; }
+.market-news-grid .panel-heading { margin-bottom: 4px; }
+.market-news-grid .panel-heading h2 { font-size: 23px; }
+.market-quotes { display: grid; grid-template-columns: 1fr; }
+.market-quote { padding: 16px 2px; border-top: 1px solid var(--line); }
+.market-quote-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.market-quote-heading h3 { font-size: 14px; letter-spacing: 1px; }
+.market-positive { color: var(--positive); }
+.market-negative { color: #e7a293; }
+.market-quote-price { margin-top: 8px; font: 26px/1.2 var(--serif); font-variant-numeric: tabular-nums; }
+.market-quote-change { margin-top: 4px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.market-headline { padding: 15px 2px; border-top: 1px solid var(--line); }
+.market-headline a { color: var(--text); font-size: 14px; line-height: 1.5; text-decoration: none; }
+.market-headline a:hover { color: var(--gold-light); }
+.market-headline-details { margin-top: 6px; color: var(--muted); font-size: 11px; }
+.market-disclaimer { margin: 13px 2px 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
 .entry-dialog { width: min(560px, calc(100% - 32px)); max-height: min(88vh, 760px); padding: 0; overflow-y: auto; color: var(--text); background: #151a1c; border: 1px solid #505653; border-radius: 6px; }
 .entry-dialog::backdrop { background: rgb(0 0 0 / 68%); backdrop-filter: blur(3px); }
 .entry-form { padding: 26px; }
@@ -264,6 +290,9 @@ progress::-moz-progress-bar { background: #c9ad74; border-radius: 6px; }
     .planned-action .button { padding: 8px 12px; font-size: 12px; min-height: 40px; gap: 7px; }
     .planned-action>span { max-width: 100px; font-size: 9px; margin: 0; }
     .overview-grid { grid-template-columns: 1fr; }
+    .market-news-grid { grid-template-columns: 1fr; }
+    .market-news-heading { gap: 10px; }
+    .market-updated { font-size: 10px; }
     .cash-panel { padding: 24px 20px; }
     .cash-amount { font-size: 54px; }
     .metrics-panel { flex-direction: row; gap: 12px; padding: 0 14px; }

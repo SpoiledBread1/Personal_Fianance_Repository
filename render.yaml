@@ -15,6 +15,10 @@ services:
         generateValue: true
       - key: DEBUG
         value: "False"
+      - key: FINNHUB_API_KEY
+        sync: false
+      - key: MARKET_WATCHLIST
+        value: AAPL,MSFT,NVDA
       - key: PYTHON_VERSION
         value: "3.13.12"
 

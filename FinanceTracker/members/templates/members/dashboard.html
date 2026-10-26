@@ -21,6 +21,7 @@
         <a class="nav-link" href="#transactions"><svg class="icon" aria-hidden="true"><use href="#icon-ledger"/></svg><span>Transactions</span></a>
         <a class="nav-link" href="#budgets"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg><span>Budgets</span></a>
         <a class="nav-link" href="#balances"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg><span>Balances</span></a>
+        <a class="nav-link" href="#stocks-news"><svg class="icon" aria-hidden="true"><use href="#icon-market"/></svg><span>Stocks &amp; News</span></a>
     </nav>
     <div class="sidebar-bottom">
         <form method="post" action="{% url 'finance:logout' %}">{% csrf_token %}<button class="nav-link logout-button" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-logout"/></svg><span>Log out</span></button></form>
@@ -79,6 +80,36 @@
                 </div>{% empty %}<p class="empty-state">No budgets to display.</p>{% endfor %}</div>
             </section>
         </div>
+        <section class="market-news-section" id="stocks-news"
+                 aria-labelledby="market-news-title"
+                 data-market-data-url="{% url 'finance:market-data' %}">
+            <div class="dashboard-heading market-news-heading">
+                <div>
+                    <h1 id="market-news-title">Stocks &amp; News</h1>
+                    <p>Market snapshots and the latest financial headlines.</p>
+                </div>
+                <p class="market-updated" id="market-updated"></p>
+            </div>
+            <div class="market-status" id="market-status" role="status" aria-live="polite">
+                Select Stocks &amp; News to load the latest market data.
+                <button class="button button-outline market-retry" id="market-retry"
+                        type="button" hidden>Retry</button>
+            </div>
+            <div class="market-news-grid">
+                <section class="panel market-quotes-panel" aria-labelledby="market-quotes-title">
+                    <div class="panel-heading"><h2 id="market-quotes-title">Watchlist</h2></div>
+                    <div class="market-quotes" id="market-quotes"></div>
+                </section>
+                <section class="panel market-headlines-panel" aria-labelledby="market-headlines-title">
+                    <div class="panel-heading"><h2 id="market-headlines-title">Market &amp; finance headlines</h2></div>
+                    <div class="market-headlines" id="market-headlines"></div>
+                </section>
+            </div>
+            <p class="market-disclaimer">
+                Quotes may be delayed and are for general information only, not investment advice.
+                Quotes provided by Finnhub. News articles are provided by third-party publishers.
+            </p>
+        </section>
     </main>
     <footer class="dashboard-footer"><span>Your private financial overview.</span><span>Discipline today. Options tomorrow.</span></footer>
 </div>
@@ -117,4 +148,5 @@
         <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit">Save budget</button></div>
     </form>
 </dialog>
+<script src="{% static 'members/market-news.js' %}" defer></script>
 {% endblock %}

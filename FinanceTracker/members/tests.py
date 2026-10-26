@@ -1,11 +1,132 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.urls import reverse
 from django.test import override_settings
 from django.utils import timezone
 from decimal import Decimal
+from unittest.mock import patch
 
+from .market_data import get_market_data
 from .models import Account, AccountType, Budget, Category, Transaction
+
+
+@override_settings(
+	STORAGES={
+		"default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+		"staticfiles": {
+			"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+		},
+	},
+	FINNHUB_API_KEY="test-token",
+	MARKET_WATCHLIST=("AAPL", "MSFT", "NVDA"),
+)
+class MarketNewsTests(TestCase):
+	def setUp(self):
+		cache.clear()
+		self.user = get_user_model().objects.create_user(username="marketuser")
+		self.client.force_login(self.user)
+
+	def test_dashboard_includes_stocks_and_news_tab(self):
+		response = self.client.get(reverse("finance:dashboard"))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'href="#stocks-news"')
+		self.assertContains(response, "Market &amp; finance headlines")
+		self.assertContains(response, reverse("finance:market-data"))
+
+	@override_settings(FINNHUB_API_KEY="")
+	def test_market_data_endpoint_explains_when_api_key_is_missing(self):
+		response = self.client.get(reverse("finance:market-data"))
+
+		self.assertEqual(response.status_code, 503)
+		self.assertIn("FINNHUB_API_KEY", response.json()["error"])
+
+	@patch("members.market_data_views.get_market_data")
+	def test_market_data_endpoint_returns_and_caches_provider_data(self, get_data):
+		data = {
+			"quotes": [
+				{
+					"symbol": "AAPL",
+					"price": 200.0,
+					"change": 2.0,
+					"change_percent": 1.0,
+					"previous_close": 198.0,
+				}
+			],
+			"headlines": [],
+			"errors": [],
+		}
+		get_data.return_value = data
+
+		first_response = self.client.get(reverse("finance:market-data"))
+		second_response = self.client.get(reverse("finance:market-data"))
+
+		self.assertEqual(first_response.status_code, 200)
+		self.assertEqual(first_response.json()["quotes"], data["quotes"])
+		self.assertIn("updated_at", first_response.json())
+		self.assertEqual(second_response.status_code, 200)
+		get_data.assert_called_once()
+
+	@patch("members.market_data._request_finnhub")
+	def test_market_data_normalizes_quotes_and_rejects_non_https_articles(
+		self, request_finnhub
+	):
+		def provider_response(endpoint, params, _api_key):
+			if endpoint == "quote":
+				return {"c": 200.0, "d": 2.0, "dp": 1.0, "pc": 198.0}
+			return [
+				{
+					"headline": "Markets open higher",
+					"source": "Example News",
+					"url": "https://example.com/markets",
+					"datetime": 1_800_000_000,
+				},
+				{
+					"headline": "Untrusted link",
+					"url": "javascript:alert(1)",
+					"datetime": 1_800_000_001,
+				},
+			]
+
+		request_finnhub.side_effect = provider_response
+
+		data = get_market_data("test-token")
+
+		self.assertEqual([quote["symbol"] for quote in data["quotes"]], [
+			"AAPL",
+			"MSFT",
+			"NVDA",
+		])
+		self.assertEqual(len(data["headlines"]), 1)
+		self.assertEqual(data["headlines"][0]["source"], "Example News")
+		self.assertEqual(data["errors"], [])
+
+
+@override_settings(
+	STORAGES={
+		"default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+		"staticfiles": {
+			"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+		},
+	}
+)
+class ProgressiveWebAppTests(TestCase):
+	def test_service_worker_is_available_at_the_site_root(self):
+		response = self.client.get("/service-worker.js")
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response["Content-Type"], "application/javascript")
+		self.assertContains(response, "sable-static-v2")
+		self.assertContains(response, "url.pathname.startsWith('/static/')", html=False)
+
+	def test_login_page_includes_installable_app_metadata(self):
+		response = self.client.get(reverse("finance:login"))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'name="theme-color"')
+		self.assertContains(response, 'rel="manifest"')
+		self.assertContains(response, 'id="install-app"')
 
 
 @override_settings(

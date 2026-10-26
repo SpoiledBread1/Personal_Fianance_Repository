@@ -1,0 +1,25 @@
+{
+    "id": "/",
+    "name": "Sable Finance",
+    "short_name": "Sable",
+    "description": "A clearer view of your money.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#101315",
+    "theme_color": "#101315",
+    "icons": [
+        {
+            "src": "pwa/sable-icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "sable/sable-symbol.png",
+            "sizes": "1254x1254",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}

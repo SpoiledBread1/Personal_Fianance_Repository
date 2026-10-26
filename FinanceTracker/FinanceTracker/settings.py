@@ -149,6 +149,12 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+FINNHUB_API_KEY = os.environ.get("FINNHUB_API_KEY", "")
+MARKET_WATCHLIST = tuple(
+    symbol.strip().upper()
+    for symbol in os.environ.get("MARKET_WATCHLIST", "AAPL,MSFT,NVDA").split(",")
+    if symbol.strip()
+)
 LOGIN_URL = "finance:login"
 LOGIN_REDIRECT_URL = "finance:dashboard"
 LOGOUT_REDIRECT_URL = "finance:login"
