@@ -54,6 +54,18 @@ def resolve_category(name):
 
 
 class SignupForm(forms.Form):
+    first_name = forms.CharField(
+        label="Name",
+        max_length=150,
+        required=True,
+        strip=True,
+        widget=forms.TextInput(
+            attrs={
+                "autocomplete": "given-name",
+                "placeholder": "What should we call you?",
+            }
+        ),
+    )
     email = forms.EmailField(
         max_length=150,
         widget=forms.EmailInput(
@@ -121,6 +133,7 @@ class SignupForm(forms.Form):
         user = get_user_model().objects.create_user(
             username=email,
             email=email,
+            first_name=self.cleaned_data["first_name"],
             password=self.cleaned_data["password1"],
         )
         MemberProfile.objects.create(

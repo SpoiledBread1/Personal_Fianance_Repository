@@ -31,11 +31,11 @@
 <div class="dashboard-shell">
     <header class="dashboard-topbar">
         <p class="breadcrumb">Personal finance <span>/</span> Overview</p>
-        <div class="topbar-details"><span class="sample-month">{{ current_month }}</span><span class="avatar" title="{{ user.get_username }}">{{ user.first_name|default:user.username|slice:':1'|upper }}</span></div>
+        <div class="topbar-details"><span class="sample-month">{{ current_month }}</span><span class="avatar" title="{{ user.first_name|default:'Your account' }}">{{ user.first_name|default:'S'|slice:':1'|upper }}</span></div>
     </header>
     <main id="main-content" class="dashboard-main">
         <section id="overview" class="dashboard-heading" aria-labelledby="dashboard-title">
-            <div><h1 id="dashboard-title">Welcome back, {{ user.first_name|default:user.username }}.</h1><p>A clearer view of your money.</p></div>
+            <div><h1 id="dashboard-title">Welcome back{% if user.first_name %}, {{ user.first_name }}{% endif %}.</h1><p>A clearer view of your money.</p></div>
             <div class="planned-action"><button class="button button-outline" type="button" data-open-dialog="transaction-dialog"><span aria-hidden="true">+</span> Add transaction</button><button class="button button-gold" type="button" data-open-dialog="budget-dialog"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg> Set up budget</button></div>
         </section>
         {% if messages %}<div class="dashboard-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
