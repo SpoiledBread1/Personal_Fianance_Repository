@@ -10,12 +10,6 @@
     "theme_color": "#101315",
     "icons": [
         {
-            "src": "pwa/sable-icon.svg",
-            "sizes": "any",
-            "type": "image/svg+xml",
-            "purpose": "any maskable"
-        },
-        {
             "src": "sable/sable-symbol.png",
             "sizes": "1254x1254",
             "type": "image/png",
