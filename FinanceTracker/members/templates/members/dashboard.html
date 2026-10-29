@@ -71,7 +71,6 @@
                         <strong class="transaction-amount {% if transaction.transaction_type == 'credit' %}income{% endif %}">{% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}${{ transaction.amount|floatformat:2 }}</strong>
                         <div class="transaction-row-actions">
                             <a href="{% url 'finance:transaction-edit' transaction.pk %}" aria-label="Edit transaction: {{ transaction.description|default:'Transaction' }}">Edit</a>
-                            <a class="transaction-delete-link" href="{% url 'finance:transaction-delete' transaction.pk %}" aria-label="Delete transaction: {{ transaction.description|default:'Transaction' }}">Delete</a>
                         </div>
                     </div>
                 {% empty %}<p class="empty-state">No transactions to display.</p>{% endfor %}</div>

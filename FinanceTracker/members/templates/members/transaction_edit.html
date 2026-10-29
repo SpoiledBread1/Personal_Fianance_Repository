@@ -19,6 +19,11 @@
                 {% endfor %}
             </div>
             <div class="dialog-actions">
+                <a class="button transaction-delete-button"
+                   href="{% url 'finance:transaction-delete' entry.pk %}"
+                   style="margin-right: auto;">
+                    Delete transaction
+                </a>
                 <a class="button button-outline" href="{% url 'finance:dashboard' %}#transactions">Cancel</a>
                 <button class="button button-gold" type="submit">Save changes</button>
             </div>
