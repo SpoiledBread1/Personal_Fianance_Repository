@@ -63,14 +63,25 @@
         </div>
         <div class="details-grid">
             <section class="panel transactions-panel" id="transactions" aria-labelledby="transactions-title">
-                <div class="panel-heading"><h2 id="transactions-title">Recent transactions</h2><span class="small-label">{{ transactions|length }} latest</span></div>
+                <div class="panel-heading"><h2 id="transactions-title">Transactions</h2><span class="small-label">{{ transaction_page.paginator.count }} total</span></div>
                 <div class="transaction-list">{% for transaction in transactions %}
                     <div class="transaction-row">
                         <span class="icon-tile compact-icon {% if transaction.transaction_type == 'credit' %}income{% endif %}"><svg class="icon" aria-hidden="true"><use href="{% if transaction.transaction_type == 'credit' %}#icon-income{% elif transaction.category.category_name == 'Groceries' %}#icon-cart{% elif transaction.category.category_name == 'Dining' %}#icon-coffee{% elif transaction.category.category_name == 'Transport' %}#icon-fuel{% else %}#icon-ledger{% endif %}"/></svg></span>
                         <div class="transaction-summary"><strong>{% if transaction.description %}{{ transaction.description }}{% elif transaction.payee %}{{ transaction.payee.payee_name }}{% else %}Transaction{% endif %}</strong><span>{{ transaction.category.category_name|default:'Uncategorized' }} · {{ transaction.transaction_date|date:'M j' }}</span></div>
                         <strong class="transaction-amount {% if transaction.transaction_type == 'credit' %}income{% endif %}">{% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}${{ transaction.amount|floatformat:2 }}</strong>
+                        <div class="transaction-row-actions">
+                            <a href="{% url 'finance:transaction-edit' transaction.pk %}" aria-label="Edit transaction: {{ transaction.description|default:'Transaction' }}">Edit</a>
+                            <a class="transaction-delete-link" href="{% url 'finance:transaction-delete' transaction.pk %}" aria-label="Delete transaction: {{ transaction.description|default:'Transaction' }}">Delete</a>
+                        </div>
                     </div>
                 {% empty %}<p class="empty-state">No transactions to display.</p>{% endfor %}</div>
+                {% if transaction_page.has_other_pages %}
+                <nav class="transaction-pagination" aria-label="Transaction pages">
+                    {% if transaction_page.has_previous %}<a class="text-button" href="?page={{ transaction_page.previous_page_number }}#transactions">← Newer</a>{% endif %}
+                    <span>Page {{ transaction_page.number }} of {{ transaction_page.paginator.num_pages }}</span>
+                    {% if transaction_page.has_next %}<a class="text-button" href="?page={{ transaction_page.next_page_number }}#transactions">Older →</a>{% endif %}
+                </nav>
+                {% endif %}
             </section>
             <section class="panel budgets-panel" id="budgets" aria-labelledby="budgets-title">
                 <div class="panel-heading"><h2 id="budgets-title">Budgets</h2><span class="small-label">{{ current_month }}</span></div>

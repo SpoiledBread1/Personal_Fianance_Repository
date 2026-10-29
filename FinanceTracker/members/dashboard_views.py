@@ -4,8 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import F, Q, Sum
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
+from django.core.paginator import Paginator
 
 from .forms import AccountForm, BudgetForm, TransactionForm
 from .models import Account, Budget, Transaction
@@ -82,7 +84,9 @@ def dashboard(request):
 
     transactions = user_transactions.select_related(
         "category", "payee", "account"
-    ).order_by("-transaction_date", "-created_at")[:6]
+    ).order_by("-transaction_date", "-created_at", "-pk")
+    transaction_page = Paginator(transactions, 6).get_page(request.GET.get("page"))
+    transactions = transaction_page.object_list
     budgets = []
     for budget in Budget.objects.filter(
         user=request.user, period_start__lte=today, period_end__gte=today
@@ -144,6 +148,7 @@ def dashboard(request):
     context = {
         "accounts": user_accounts.select_related("account_type"),
         "transactions": transactions,
+        "transaction_page": transaction_page,
         "budgets": budgets,
         "available_cash": user_accounts.aggregate(total=Sum("current_balance"))["total"] or 0,
         "monthly_spending": monthly_debits,
@@ -157,3 +162,59 @@ def dashboard(request):
         "open_dialog": open_dialog,
     }
     return render(request, "members/dashboard.html", context)
+
+
+def _balance_effect(entry):
+    return -entry.amount if entry.transaction_type == Transaction.TransactionType.DEBIT else entry.amount
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def transaction_edit(request, pk):
+    # Capture the old values before ModelForm validation mutates its instance.
+    with transaction.atomic():
+        entries = Transaction.objects.filter(account__user=request.user)
+        if request.method == "POST":
+            entries = entries.select_for_update(of=("self",))
+        entry = get_object_or_404(entries, pk=pk)
+        old_account_id = entry.account_id
+        old_effect = _balance_effect(entry)
+        form = TransactionForm(
+            request.POST if request.method == "POST" else None,
+            instance=entry,
+            user=request.user,
+        )
+        if request.method == "POST" and form.is_valid():
+            # Lock both accounts in a consistent order when moving an entry.
+            list(Account.objects.select_for_update().filter(
+                pk__in={old_account_id, form.cleaned_data["account"].pk},
+                user=request.user,
+            ).order_by("pk"))
+            updated = form.save()
+            changes = {old_account_id: -old_effect}
+            changes[updated.account_id] = changes.get(updated.account_id, 0) + _balance_effect(updated)
+            for account_id in sorted(changes):
+                Account.objects.filter(pk=account_id, user=request.user).update(
+                    current_balance=F("current_balance") + changes[account_id]
+                )
+            messages.success(request, "Transaction updated.")
+            return redirect("finance:dashboard")
+    return render(request, "members/transaction_edit.html", {"form": form, "entry": entry})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def transaction_delete(request, pk):
+    with transaction.atomic():
+        entries = Transaction.objects.filter(account__user=request.user)
+        if request.method == "POST":
+            entries = entries.select_for_update(of=("self",))
+        entry = get_object_or_404(entries, pk=pk)
+        if request.method == "POST":
+            Account.objects.filter(pk=entry.account_id, user=request.user).update(
+                current_balance=F("current_balance") - _balance_effect(entry)
+            )
+            entry.delete()
+            messages.success(request, "Transaction deleted and account balance corrected.")
+            return redirect("finance:dashboard")
+    return render(request, "members/transaction_delete.html", {"entry": entry})

@@ -1,0 +1,26 @@
+{% extends 'members/base.html' %}
+{% block title %}Delete transaction · Sable{% endblock %}
+{% block body_class %}transaction-editor-page{% endblock %}
+{% block layout %}
+<main id="main-content" class="transaction-editor-shell">
+    <a class="text-button transaction-back" href="{% url 'finance:dashboard' %}#transactions">← Back to transactions</a>
+    <section class="panel" aria-labelledby="delete-title">
+        <form method="post" class="entry-form">
+            {% csrf_token %}
+            <div class="dialog-heading"><div><p class="eyebrow">Your ledger</p><h1 id="delete-title">Delete this transaction?</h1></div></div>
+            <p class="transaction-editor-note">This permanently removes the entry and reverses its effect on your account balance. Your spending chart and budgets will also update.</p>
+            <dl class="transaction-delete-details">
+                <dt>Description</dt><dd>{{ entry.description|default:"Transaction" }}</dd>
+                <dt>Account</dt><dd>{{ entry.account.account_name }}</dd>
+                <dt>Type</dt><dd>{% if entry.transaction_type == 'credit' %}Income{% else %}Expense{% endif %}</dd>
+                <dt>Amount</dt><dd>{{ entry.account.currency }} {{ entry.amount|floatformat:2 }}</dd>
+                <dt>Date</dt><dd>{{ entry.transaction_date|date:"M j, Y" }}</dd>
+            </dl>
+            <div class="dialog-actions">
+                <a class="button button-outline" href="{% url 'finance:dashboard' %}#transactions">Keep transaction</a>
+                <button class="button transaction-delete-button" type="submit">Delete transaction</button>
+            </div>
+        </form>
+    </section>
+</main>
+{% endblock %}

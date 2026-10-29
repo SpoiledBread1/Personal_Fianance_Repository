@@ -168,13 +168,26 @@ class TransactionForm(forms.ModelForm):
 
     def __init__(self, *args, user, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["transaction_date"].initial = timezone.localdate()
+        if not self.instance.pk:
+            self.fields["transaction_date"].initial = timezone.localdate()
+        self.fields["transaction_type"].choices = [
+            (Transaction.TransactionType.DEBIT, "Expense"),
+            (Transaction.TransactionType.CREDIT, "Income"),
+        ]
+        self.fields["transaction_type"].label = "Type"
         self.fields["account"].queryset = Account.objects.filter(user=user).order_by(
             "account_name"
         )
         self.fields["category_name"].choices = category_choices(
             include_uncategorized=True
         )
+        if self.instance.pk and self.instance.category_id:
+            name = self.instance.category.category_name
+            choices = list(self.fields["category_name"].choices)
+            if name not in {value for value, label in choices}:
+                choices.insert(-1, (name, name))
+            self.fields["category_name"].choices = choices
+            self.initial["category_name"] = name
         self.order_fields(
             (
                 "account",

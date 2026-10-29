@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sable-static-v3';
+const CACHE_NAME = 'sable-static-v4';
 const CACHE_PREFIX = 'sable-static-';
 
 self.addEventListener('install', () => {

@@ -339,3 +339,25 @@ progress::-moz-progress-bar { background: #c9ad74; border-radius: 6px; }
         }
     }
 }
+
+
+/* Transaction correction pages and row actions. */
+.transaction-row-actions { display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
+.transaction-row-actions a { color: var(--gold-light); padding: 4px 6px; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.transaction-row-actions .transaction-delete-link { color: #f0aaaa; }
+.transaction-pagination { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 14px; padding-top: 18px; color: var(--muted); font-size: 12px; }
+.transaction-editor-shell { width: min(660px, calc(100% - 32px)); margin: 48px auto; }
+.transaction-back { display: inline-block; margin-bottom: 20px; font-size: 14px; }
+.transaction-editor-shell h1 { font-size: clamp(26px, 5vw, 36px); }
+.transaction-editor-note { color: var(--muted); margin-bottom: 24px; line-height: 1.7; }
+.transaction-delete-details { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 20px; }
+.transaction-delete-details dt { color: var(--muted); }
+.transaction-delete-details dd { margin: 0; overflow-wrap: anywhere; }
+.transaction-delete-button { background: #652d32; color: #fff1f1; border-color: #b45e64; }
+.transaction-delete-button:hover { background: #7b363e; }
+@media (max-width: 600px) {
+    .transactions-panel .transaction-row { flex-wrap: wrap; }
+    .transaction-row-actions { flex-direction: row; justify-content: flex-end; width: 100%; }
+    .transaction-editor-shell .entry-fields { grid-template-columns: 1fr; }
+    .transaction-editor-shell .dialog-actions { flex-wrap: wrap; }
+}

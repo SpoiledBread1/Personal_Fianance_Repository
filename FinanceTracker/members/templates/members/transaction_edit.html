@@ -1,0 +1,28 @@
+{% extends 'members/base.html' %}
+{% block title %}Edit transaction · Sable{% endblock %}
+{% block body_class %}transaction-editor-page{% endblock %}
+{% block layout %}
+<main id="main-content" class="transaction-editor-shell">
+    <a class="text-button transaction-back" href="{% url 'finance:dashboard' %}#transactions">← Back to transactions</a>
+    <section class="panel" aria-labelledby="edit-title">
+        <form method="post" class="entry-form">
+            {% csrf_token %}
+            <div class="dialog-heading"><div><p class="eyebrow">Your ledger</p><h1 id="edit-title">Edit transaction</h1></div></div>
+            <p class="transaction-editor-note">Correct the details below. Your account balances and spending totals will update when you save.</p>
+            {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+            <div class="entry-fields">
+                {% for field in form %}
+                <div class="entry-field{% if field.name == 'description' %} field-wide{% endif %}{% if field.name == 'custom_category' %} category-custom-field{% endif %}">
+                    {{ field.label_tag }}{{ field }}
+                    {% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="dialog-actions">
+                <a class="button button-outline" href="{% url 'finance:dashboard' %}#transactions">Cancel</a>
+                <button class="button button-gold" type="submit">Save changes</button>
+            </div>
+        </form>
+    </section>
+</main>
+{% endblock %}
