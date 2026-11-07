@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
     <title>{% block title %}Finance Hub{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'members/dashboard.css' %}?v=noir-3">
-    <script src="{% static 'members/finance-ui.js' %}?v=noir-2" defer></script>
+    <link rel="stylesheet" href="{% static 'members/dashboard.css' %}?v=noir-5">
+    <script src="{% static 'members/finance-ui.js' %}?v=noir-3" defer></script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -25,6 +25,7 @@
             <symbol id="icon-fuel" viewBox="0 0 24 24"><path d="M4 21V4h10v17M2 21h14M6 7h6v5H6zM14 11h2v7a2 2 0 0 0 4 0V8l-3-3M18 6v5h2"/></symbol>
             <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M3 12h18M15 6l6 6-6 6"/></symbol>
             <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+            <symbol id="icon-market" viewBox="0 0 24 24"><path d="M3 19h18M5 16l5-5 4 3 6-8"/><path d="M15 6h5v5"/></symbol>
         </defs>
     </svg>
     {% block layout %}{% endblock %}

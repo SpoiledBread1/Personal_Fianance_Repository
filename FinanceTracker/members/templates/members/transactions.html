@@ -1,0 +1,50 @@
+{% extends 'members/section_shell.html' %}
+{% block title %}Transactions · Finance Hub{% endblock %}
+{% block page_content %}
+<section class="panel filter-panel" aria-label="Filter transactions">
+    <form method="get" class="filter-form">
+        <div class="filter-fields">
+            <label class="filter-field">Year
+                <select name="year">
+                    <option value="all"{% if selected_year == 'all' %} selected{% endif %}>All years</option>
+                    {% for year in years %}<option value="{{ year }}"{% if selected_year == year|stringformat:'s' %} selected{% endif %}>{{ year }}</option>{% endfor %}
+                </select>
+            </label>
+            <label class="filter-field">Type
+                <select name="type"><option value="">All types</option>{% for value, label in transaction_types %}<option value="{{ value }}"{% if selected_type == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+            </label>
+            <label class="filter-field">Account
+                <select name="account"><option value="">All accounts</option>{% for account in accounts %}<option value="{{ account.pk }}"{% if selected_account == account.pk|stringformat:'s' %} selected{% endif %}>{{ account.account_name }}</option>{% endfor %}</select>
+            </label>
+            <label class="filter-field">Category
+                <select name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category.category_id }}"{% if selected_category == category.category_id|stringformat:'s' %} selected{% endif %}>{{ category.category__category_name }}</option>{% endfor %}</select>
+            </label>
+            <label class="filter-field filter-search">Search
+                <input type="search" name="q" value="{{ search }}" maxlength="100" placeholder="Description, payee, or category">
+            </label>
+        </div>
+        <div class="filter-actions"><button class="button button-gold" type="submit">Apply filters</button><a class="button button-outline" href="{% url 'finance:transactions' %}">Clear</a></div>
+    </form>
+</section>
+<section class="transaction-summary-cards" aria-label="Filtered totals">
+    <article class="panel transaction-total-card"><p class="eyebrow">Matching transactions</p><strong>{{ page_obj.paginator.count }}</strong></article>
+    {% for total in currency_totals %}<article class="panel transaction-total-card"><p class="eyebrow">{{ total.account__currency }} {% if total.transaction_type == 'debit' %}spent{% else %}received{% endif %}</p><strong>{{ total.account__currency }} {{ total.total|floatformat:2 }}</strong></article>{% endfor %}
+</section>
+<section class="panel full-transactions-panel" aria-labelledby="transaction-history-title">
+    <div class="panel-heading"><div><h2 id="transaction-history-title">Transaction history</h2><p class="small-label">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}</p></div><a class="text-button" href="{% url 'finance:dashboard' %}?dialog=transaction-dialog">+ Add transaction</a></div>
+    <div class="table-scroll"><table class="data-table">
+        <thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Category</th><th scope="col">Account</th><th scope="col">Type</th><th scope="col" class="amount-cell">Amount</th></tr></thead>
+        <tbody>
+        {% for transaction in transactions %}
+            <tr><td>{{ transaction.transaction_date|date:'M j, Y' }}</td><td><strong>{% if transaction.description %}{{ transaction.description }}{% elif transaction.payee %}{{ transaction.payee.payee_name }}{% else %}Transaction{% endif %}</strong></td><td>{{ transaction.category.category_name|default:'Uncategorized' }}</td><td>{{ transaction.account.account_name }}</td><td><span class="type-pill{% if transaction.transaction_type == 'credit' %} income{% endif %}">{{ transaction.get_transaction_type_display }}</span></td><td class="amount-cell {{ transaction.transaction_type }}">{% if transaction.transaction_type == 'credit' %}+{% else %}−{% endif %}{{ transaction.account.currency }} {{ transaction.amount|floatformat:2 }}</td></tr>
+        {% empty %}<tr><td colspan="6" class="table-empty">No transactions match these filters. Try broadening your search.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table></div>
+    {% if page_obj.paginator.num_pages > 1 %}<nav class="pagination" aria-label="Transaction pages">
+        {% if page_obj.has_previous %}<a class="button button-outline" href="?{% if filter_query %}{{ filter_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>{% else %}<span></span>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="button button-outline" href="?{% if filter_query %}{{ filter_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+    </nav>{% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'members/section_shell.html' %}
+{% block title %}News &amp; Stocks · Finance Hub{% endblock %}
+{% block page_content %}
+<section class="market-links market-links-featured" aria-label="Market indices on CNBC">
+    {% for market in market_links %}<a class="panel market-link" href="{{ market.url }}" target="_blank" rel="noopener noreferrer"><span>{{ market.name }}</span><strong>Open CNBC quote ↗</strong></a>{% endfor %}
+</section>
+<section class="panel stock-lookup-panel" aria-labelledby="stock-lookup-title">
+    <div><p class="eyebrow">Stock lookup</p><h2 id="stock-lookup-title">Look up a symbol</h2><p>Search CNBC for a stock symbol to view its quote and market details.</p></div>
+    <form method="get" class="stock-lookup-form">
+        <label for="stock-symbol">Ticker symbol</label>
+        <div class="stock-lookup-controls"><input id="stock-symbol" name="symbol" value="{{ symbol }}" maxlength="10" placeholder="e.g. AAPL" autocomplete="off"><button class="button button-gold" type="submit">Find stock</button></div>
+        {% if symbol_error %}<p class="field-errors" role="alert">{{ symbol_error }}</p>{% endif %}
+        {% if stock_url %}<p class="stock-lookup-result">Quote for <strong>{{ symbol }}</strong>: <a href="{{ stock_url }}" target="_blank" rel="noopener noreferrer">Open on CNBC ↗</a></p>{% endif %}
+    </form>
+</section>
+<section class="panel full-news-panel" aria-labelledby="news-headlines-title">
+    <div class="panel-heading"><div><p class="eyebrow">Latest from CNBC</p><h2 id="news-headlines-title">Finance headlines</h2></div><div class="news-actions"><a class="text-button" href="?refresh=1">↻ Refresh headlines</a><a class="text-button" href="https://www.cnbc.com/finance/" target="_blank" rel="noopener noreferrer">Visit CNBC ↗</a></div></div>
+    {% if news_error %}<p class="news-notice" role="status">{{ news_error }}</p>{% else %}
+        <div class="full-news-list">{% for article in news_articles %}
+            <article class="full-news-item"><div class="news-item-meta"><span>CNBC</span><time>{{ article.published|default:"Latest" }}</time></div><h3><a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">{{ article.title }}</a></h3>{% if article.description %}<p>{{ article.description }}</p>{% endif %}<a class="news-read-link" href="{{ article.url }}" target="_blank" rel="noopener noreferrer">Read on CNBC ↗</a></article>
+        {% empty %}<p class="empty-state">No headlines are available right now.</p>{% endfor %}</div>
+    {% endif %}
+    <p class="source-note">News headlines are provided by CNBC and open on its website. Market quotes are provided by CNBC and may be delayed; this page does not provide investment advice.</p>
+</section>
+{% endblock %}

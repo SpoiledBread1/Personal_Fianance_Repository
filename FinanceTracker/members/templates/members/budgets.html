@@ -1,0 +1,18 @@
+{% extends 'members/section_shell.html' %}
+{% block title %}Budgets · Finance Hub{% endblock %}
+{% block page_content %}
+<section class="panel section-intro-panel">
+    <div><p class="eyebrow">Plan with clarity</p><h2>Every budget, in one place</h2><p>Review current and past category limits alongside recorded debit transactions.</p></div>
+    <a class="button button-gold" href="{% url 'finance:dashboard' %}?dialog=budget-dialog">+ Set up budget</a>
+</section>
+<section class="budget-history-grid" aria-label="Budgets">
+    {% for budget in budgets %}
+    <article class="panel budget-history-card">
+        <div class="panel-heading"><div><p class="eyebrow">{% if budget.is_current %}Current period{% else %}Budget period{% endif %}</p><h2>{{ budget.category }}</h2></div><span class="small-label">{{ budget.period_start|date:'M Y' }} – {{ budget.period_end|date:'M Y' }}</span></div>
+        <div class="budget-label"><span>Spent</span><strong>{{ budget.spent|floatformat:2 }} / {{ budget.limit|floatformat:2 }}</strong></div>
+        <progress value="{{ budget.spent }}" max="{{ budget.limit }}" aria-label="{{ budget.category }} budget used">{{ budget.percent }}%</progress>
+        <div class="budget-meta"><span>{{ budget.remaining|floatformat:2 }} remaining</span><span>{{ budget.percent }}% used</span></div>
+    </article>
+    {% empty %}<div class="panel empty-panel"><h2>No budgets yet</h2><p>Set a category limit to start tracking your progress.</p><a class="button button-gold" href="{% url 'finance:dashboard' %}?dialog=budget-dialog">Create your first budget</a></div>{% endfor %}
+</section>
+{% endblock %}

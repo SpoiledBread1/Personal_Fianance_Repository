@@ -2,20 +2,7 @@
 {% block title %}Overview · Finance Hub{% endblock %}
 {% block body_class %}dashboard-page{% endblock %}
 {% block layout %}
-<aside class="sidebar">
-    <a class="wordmark sidebar-brand" href="{% url 'finance:dashboard' %}" aria-label="Finance Hub overview"><span class="monogram" aria-hidden="true">F</span><span>Finance Hub</span></a>
-    <p class="nav-label">Workspace</p>
-    <nav aria-label="Dashboard sections">
-        <a class="nav-link active" href="#overview" aria-current="location"><svg class="icon" aria-hidden="true"><use href="#icon-overview"/></svg><span>Overview</span></a>
-        <a class="nav-link" href="#transactions"><svg class="icon" aria-hidden="true"><use href="#icon-ledger"/></svg><span>Transactions</span></a>
-        <a class="nav-link" href="#budgets"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg><span>Budgets</span></a>
-        <a class="nav-link" href="#balances"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg><span>Balances</span></a>
-    </nav>
-    <div class="sidebar-bottom">
-        <form method="post" action="{% url 'finance:logout' %}">{% csrf_token %}<button class="nav-link logout-button" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-logout"/></svg><span>Log out</span></button></form>
-        <p class="sidebar-signoff">A calmer<br>financial life.</p>
-    </div>
-</aside>
+{% include 'members/sidebar.html' %}
 <div class="dashboard-shell">
     <header class="dashboard-topbar">
         <p class="breadcrumb">Personal finance <span>/</span> Overview</p>
@@ -51,7 +38,7 @@
         </div>
         <div class="details-grid">
             <section class="panel transactions-panel" id="transactions" aria-labelledby="transactions-title">
-                <div class="panel-heading"><h2 id="transactions-title">Recent transactions</h2><span class="small-label">{{ transactions|length }} latest</span></div>
+                <div class="panel-heading"><div><h2 id="transactions-title">Recent transactions</h2><span class="small-label">{{ transactions|length }} latest</span></div><a class="text-button" href="{% url 'finance:transactions' %}">View all →</a></div>
                 <div class="transaction-list">{% for transaction in transactions %}
                     <div class="transaction-row">
                         <span class="icon-tile compact-icon {% if transaction.transaction_type == 'credit' %}income{% endif %}"><svg class="icon" aria-hidden="true"><use href="{% if transaction.transaction_type == 'credit' %}#icon-income{% elif transaction.category.category_name == 'Groceries' %}#icon-cart{% elif transaction.category.category_name == 'Dining' %}#icon-coffee{% elif transaction.category.category_name == 'Transport' %}#icon-fuel{% else %}#icon-ledger{% endif %}"/></svg></span>
@@ -61,13 +48,23 @@
                 {% empty %}<p class="empty-state">No transactions to display.</p>{% endfor %}</div>
             </section>
             <section class="panel budgets-panel" id="budgets" aria-labelledby="budgets-title">
-                <div class="panel-heading"><h2 id="budgets-title">Monthly budgets</h2><span class="small-label">{{ current_month }}</span></div>
+                <div class="panel-heading"><div><h2 id="budgets-title">Monthly budgets</h2><span class="small-label">{{ current_month }}</span></div><a class="text-button" href="{% url 'finance:budgets' %}">View all →</a></div>
                 <div class="budget-list">{% for budget in budgets %}<div class="budget-row">
                     <span class="icon-tile"><svg class="icon" aria-hidden="true"><use href="{% if budget.name == 'Groceries' %}#icon-cart{% elif budget.name == 'Dining out' %}#icon-coffee{% else %}#icon-fuel{% endif %}"/></svg></span>
                     <div class="budget-content"><div class="budget-label"><span>{{ budget.name }}</span><span class="budget-amount"><strong>${{ budget.spent }}</strong><span> / ${{ budget.limit }}</span></span></div><progress value="{{ budget.spent }}" max="{{ budget.limit }}" aria-label="{{ budget.name }} spending">{{ budget.percent }}%</progress><div class="budget-meta"><span>${{ budget.remaining }} remaining</span><span>{{ budget.percent }}%</span></div></div>
                 </div>{% empty %}<p class="empty-state">No budgets to display.</p>{% endfor %}</div>
             </section>
         </div>
+    <section class="panel home-news-panel" aria-labelledby="home-news-title">
+        <div class="panel-heading"><div><p class="eyebrow">From CNBC</p><h2 id="home-news-title">News &amp; Stocks</h2></div><a class="text-button" href="{% url 'finance:news_stocks' %}">Explore all news and stocks <span aria-hidden="true">→</span></a></div>
+        {% if news_error %}<p class="news-notice" role="status">{{ news_error }}</p>{% else %}
+            <div class="news-preview-list">{% for article in news_articles %}
+                <article class="news-preview"><p class="news-date">{{ article.published|default:"Latest" }}</p><h3><a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">{{ article.title }}</a></h3></article>
+            {% empty %}<p class="empty-state">No headlines are available right now.</p>{% endfor %}</div>
+        {% endif %}
+        <div class="market-links">{% for market in market_links %}<a class="market-link" href="{{ market.url }}" target="_blank" rel="noopener noreferrer"><span>{{ market.name }}</span><strong>View on CNBC ↗</strong></a>{% endfor %}</div>
+        <p class="source-note">Headlines and market quotes open on CNBC. Market data may be delayed.</p>
+    </section>
     </main>
     <footer class="dashboard-footer"><span>Your private financial overview.</span><span>Discipline today. Options tomorrow.</span></footer>
 </div>

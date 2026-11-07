@@ -1,0 +1,18 @@
+{% extends 'members/section_shell.html' %}
+{% block title %}Balances · Finance Hub{% endblock %}
+{% block page_content %}
+<section class="balance-total-grid" aria-label="Balances by currency">
+    {% for total in currency_totals %}<article class="panel balance-total-card"><p class="eyebrow">Total in {{ total.currency }}</p><strong>{{ total.currency }} {{ total.total|floatformat:2 }}</strong></article>{% empty %}<article class="panel balance-total-card"><p class="eyebrow">Account balances</p><strong>No accounts yet</strong></article>{% endfor %}
+</section>
+<section class="panel account-details-panel" aria-labelledby="accounts-title">
+    <div class="panel-heading"><div><h2 id="accounts-title">Your accounts</h2><p class="small-label">{{ accounts|length }} account{{ accounts|length|pluralize }}</p></div><a class="text-button" href="{% url 'finance:dashboard' %}?dialog=account-dialog">+ Add account</a></div>
+    <div class="account-card-list">
+        {% for account in accounts %}<article class="account-detail-row">
+            <span class="icon-tile"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg></span>
+            <div class="account-detail-copy"><strong>{{ account.account_name }}</strong><span>{{ account.account_type.type_name }} · {{ account.currency }} · {{ account.transaction_count }} transaction{{ account.transaction_count|pluralize }}</span></div>
+            <strong class="account-detail-balance">{{ account.currency }} {{ account.current_balance|floatformat:2 }}</strong>
+            <span class="account-last-activity">{% if account.last_transaction %}Last activity {{ account.last_transaction|date:'M j, Y' }}{% else %}No transactions yet{% endif %}</span>
+        </article>{% empty %}<p class="empty-state">No accounts to display. Add an account to see its balance here.</p>{% endfor %}
+    </div>
+</section>
+{% endblock %}
