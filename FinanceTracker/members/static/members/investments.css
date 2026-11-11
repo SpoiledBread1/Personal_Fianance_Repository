@@ -1,0 +1,39 @@
+/* Sable investments: isolated selectors preserve the existing dashboard. */
+.investment-heading-actions { display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+.investment-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.investment-stat { padding:22px 24px; }
+.investment-stat-value { margin-top:12px; font:clamp(25px,2.5vw,36px)/1.2 var(--serif); font-variant-numeric:tabular-nums; }
+.investment-stat-percent { margin-left:12px; font:16px/1.4 var(--font-sans, system-ui, sans-serif); white-space:nowrap; }
+.investment-stat-detail { margin-left:16px; font:13px/1.4 var(--font-sans, system-ui, sans-serif); color:var(--muted); }
+.investment-update-bar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:14px 0; }
+.investment-update-bar .market-updated { flex-shrink:1; }
+.investment-update-bar button:disabled { opacity:.6; }
+.investment-status[hidden] { display:none; }
+.holdings-panel { padding:0 24px; margin-bottom:18px; }
+.holdings-table { min-width:810px; }
+.holdings-table th:not(:first-child), .holdings-table td:not(:first-child) { text-align:right; }
+.holdings-table th { font-size:9px; letter-spacing:1.6px; padding:14px 20px; }
+.holdings-table td { font-size:13px; padding:16px 20px; font-variant-numeric:tabular-nums; }
+.holdings-table th:first-child, .holdings-table td:first-child { padding-left:0; }
+.holdings-table th:last-child, .holdings-table td:last-child { padding-right:0; }
+.holdings-table th:first-child { width:28%; }
+.investment-identity { display:flex; align-items:center; gap:14px; }
+.investment-identity strong, .investment-watch-row strong { font-size:13px; font-weight:600; }
+.investment-company { display:block; margin-top:4px; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; color:var(--muted); }
+.investment-badge { display:grid; place-items:center; flex:0 0 34px; width:34px; height:34px; border:1px solid var(--line); border-radius:6px; background:#212729; font-size:14px; }
+.investment-cell-line, .investment-cell-sub { display:block; }
+.investment-cell-sub { margin-top:4px; font-size:11px; }
+.investment-stale { color:var(--gold-light); }
+.investment-empty { padding:30px 0!important; text-align:left!important; color:var(--muted); white-space:normal; line-height:1.6; }
+.investment-lower-grid { align-items:start; }
+.investment-watch-row { display:grid; grid-template-columns:minmax(0,1fr) auto 20px; align-items:center; gap:16px; border-top:1px solid var(--line); padding:16px 0; }
+.investment-watch-price { text-align:right; font-size:13px; font-variant-numeric:tabular-nums; }
+.investment-remove { font-size:22px; color:var(--muted); }
+.investment-news-filter { display:flex; align-items:center; gap:10px; margin:0 0 14px; color:var(--muted); font-size:12px; }
+.investment-news-filter select { padding:7px 10px; border:1px solid var(--line); border-radius:4px; background:#1a1f21; color:var(--text); font:inherit; }
+.investment-news-tags { display:flex; gap:6px; margin-bottom:7px; flex-wrap:wrap; }
+.investment-ticker-chip { padding:3px 8px; border:1px solid #44473d; border-radius:20px; color:var(--gold-light); font-size:10px; }
+.investment-delete-link { margin-right:auto; }
+.holdings-table .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+@media(max-width:1100px) { .investment-heading-actions { gap:12px; } .investment-stat { padding:18px; } .investment-stat-percent { display:block; margin:7px 0 0; font-size:14px; } }
+@media(max-width:750px) { .investment-summary { grid-template-columns:1fr; gap:12px; } .investment-stat { display:flex; align-items:center; justify-content:space-between; gap:12px; } .investment-stat-value { margin:0; font-size:27px; text-align:right; } .investment-stat .eyebrow { font-size:9px; } .investment-stat-detail { font-size:11px; } .investment-heading-actions { width:100%; justify-content:space-between; } .investment-lower-grid { grid-template-columns:1fr; } .holdings-panel { padding:0 16px; } .investment-update-bar { align-items:flex-start; } .investment-update-bar .market-updated { font-size:11px; line-height:1.6; } }

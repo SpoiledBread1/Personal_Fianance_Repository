@@ -10,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 
 from .forms import AccountForm, BudgetForm, TransactionForm
-from .models import Account, Budget, Transaction
+from .models import Account, Budget, Transaction, Holding, WatchlistEntry
 
 
 SPENDING_CHART_COLORS = (
@@ -146,6 +146,8 @@ def dashboard(request):
     ).aggregate(total=Sum("current_balance"))["total"] or 0
 
     context = {
+        "holdings": Holding.objects.filter(user=request.user),
+        "watchlist_entries": WatchlistEntry.objects.filter(user=request.user),
         "accounts": user_accounts.select_related("account_type"),
         "transactions": transactions,
         "transaction_page": transaction_page,

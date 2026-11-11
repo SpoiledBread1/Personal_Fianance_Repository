@@ -130,7 +130,9 @@ class TransactionCorrectionTests(TestCase):
         self.assertContains(page, "Older")
         page2 = self.client.get(self.home, {"page": 2})
         self.assertContains(page2, self.edit)
-        self.assertContains(page2, self.delete)
+        self.assertContains(page2, self.edit)
+        self.assertNotContains(page2, self.delete)
+        self.assertContains(self.client.get(self.edit), self.delete)
 
     def test_labels_and_add_still_work(self):
         form = TransactionForm(user=self.user)

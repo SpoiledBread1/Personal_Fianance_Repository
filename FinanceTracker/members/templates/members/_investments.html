@@ -1,0 +1,44 @@
+<section class="market-news-section investments-section" id="stocks-news" aria-labelledby="market-news-title"
+         data-market-data-url="{% url 'finance:market-data' %}">
+    <div class="dashboard-heading market-news-heading">
+        <div><h1 id="market-news-title">Investments</h1><p>Your portfolio, at a glance.</p></div>
+        <div class="investment-heading-actions"><span class="small-label">US stocks &amp; ETFs · USD</span><a class="button button-gold" href="{% url 'finance:holding-add' %}">+ Add holding</a></div>
+    </div>
+    <div class="investment-summary">
+        <section class="panel investment-stat"><p class="eyebrow" id="portfolio-value-label">Portfolio value</p><p class="investment-stat-value" id="portfolio-value">{% if not holdings %}$0.00{% else %}—{% endif %}</p></section>
+        <section class="panel investment-stat"><p class="eyebrow">Day change</p><p class="investment-stat-value"><span id="portfolio-day">—</span><span class="investment-stat-percent" id="portfolio-day-percent"></span></p></section>
+        <section class="panel investment-stat"><p class="eyebrow">Holdings</p><p class="investment-stat-value"><span id="holding-count">{{ holdings|length }}</span><span class="investment-stat-detail">Stocks &amp; ETFs</span></p></section>
+    </div>
+    <div class="investment-update-bar"><p class="market-updated" id="market-updated">Quotes load when this section is visible.</p><button class="text-button" id="market-retry" type="button">Refresh</button></div>
+    <p class="market-status investment-status" id="market-status" role="status" aria-live="polite" hidden></p>
+    <section class="panel holdings-panel" aria-labelledby="holdings-title">
+        <div class="panel-heading"><h2 id="holdings-title">Your holdings</h2><span class="small-label">Latest available quotes</span></div>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Your holdings; scroll horizontally to see all columns">
+            <table class="holdings-table">
+                <thead><tr><th scope="col">Investment</th><th scope="col">Shares</th><th scope="col">Price</th><th scope="col">Price chng</th><th scope="col">Day change $</th><th scope="col">Market value</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+                <tbody id="holdings-body">
+                    {% for holding in holdings %}<tr><td><div class="investment-identity"><span class="investment-badge" aria-hidden="true">{{ holding.symbol|slice:':1' }}</span><div><strong>{{ holding.symbol }}</strong><span class="investment-company">{{ holding.name }}</span></div></div></td><td>{{ holding.shares|floatformat:'-6' }}</td><td>—</td><td>—</td><td>—</td><td>—</td><td><a class="text-button" href="{% url 'finance:holding-edit' holding.pk %}" aria-label="Edit {{ holding.symbol }}">Edit</a></td></tr>
+                    {% empty %}<tr><td colspan="7" class="investment-empty">Add your first holding to track its price and value automatically.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="panel-footnote">Price change compares one share with the previous trading close. Day change multiplies that move by your current shares; on closed days it reflects the latest quoted session.</p>
+    </section>
+    <div class="market-news-grid investment-lower-grid">
+        <section class="panel market-quotes-panel" aria-labelledby="market-quotes-title">
+            <div class="panel-heading"><h2 id="market-quotes-title">Watchlist</h2><a class="text-button" href="{% url 'finance:watchlist-add' %}">+ Add symbol</a></div>
+            <div class="investment-watchlist" id="market-quotes">
+                {% for item in watchlist_entries %}
+                <div class="investment-watch-row" data-watch-id="{{ item.pk }}"><div><strong>{{ item.symbol }}</strong><span class="investment-company">{{ item.name }}</span></div><div class="investment-watch-price">—</div><form method="post" action="{% url 'finance:watchlist-delete' item.pk %}">{% csrf_token %}<button class="text-button investment-remove" aria-label="Remove {{ item.symbol }} from watchlist" type="submit">×</button></form></div>
+                {% empty %}<p class="empty-state">Follow stocks without adding them to your portfolio.</p>{% endfor %}
+            </div>
+        </section>
+        <section class="panel market-headlines-panel" aria-labelledby="market-headlines-title">
+            <div class="panel-heading"><h2 id="market-headlines-title">News for your holdings</h2></div>
+            <label class="investment-news-filter" for="news-filter">Show news for <select id="news-filter"><option value="">All holdings</option>{% for holding in holdings %}<option value="{{ holding.symbol }}">{{ holding.symbol }}</option>{% endfor %}</select></label>
+            <div id="market-headlines"><p class="empty-state">{% if holdings %}Recent company headlines will appear here.{% else %}Add a holding to get news about the companies you own.{% endif %}</p></div>
+        </section>
+    </div>
+    <noscript><p class="market-status">Enable JavaScript to load automatic quotes and news. Your saved holdings can still be edited.</p></noscript>
+    <p class="market-disclaimer">Holdings are entered manually and tracked separately from account balances. Prices may be delayed. Quotes and company news provided by Finnhub; articles link to their original publishers.</p>
+</section>

@@ -128,3 +128,42 @@ class Budget(models.Model):
 
     def __str__(self):
         return f"{self.category} budget {self.period_start}–{self.period_end}"
+
+
+class Holding(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="holdings")
+    symbol = models.CharField(max_length=15)
+    name = models.CharField(max_length=160)
+    shares = models.DecimalField(max_digits=18, decimal_places=6)
+
+    class Meta:
+        ordering = ["symbol"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "symbol"], name="holding_user_symbol"),
+            models.CheckConstraint(condition=models.Q(shares__gt=0), name="holding_positive_shares"),
+        ]
+
+    def __str__(self):
+        return f"{self.symbol}: {self.shares} shares"
+
+
+class WatchlistEntry(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="watchlist_entries")
+    symbol = models.CharField(max_length=15)
+    name = models.CharField(max_length=160)
+
+    class Meta:
+        ordering = ["symbol"]
+        constraints = [models.UniqueConstraint(fields=["user", "symbol"], name="watch_user_symbol")]
+
+    def __str__(self):
+        return self.symbol
+
+
+class MarketCache(models.Model):
+    """Shared provider data and request leases, never private portfolio records."""
+    key = models.CharField(max_length=100, unique=True)
+    payload = models.JSONField(default=dict)
+    fetched_at = models.DateTimeField(null=True, blank=True)
+    refresh_after = models.DateTimeField(null=True, blank=True)
+    lease_until = models.DateTimeField(null=True, blank=True)

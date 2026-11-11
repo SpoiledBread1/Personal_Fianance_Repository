@@ -1,0 +1,27 @@
+{% extends 'members/base.html' %}
+{% load static %}
+{% block title %}{% if entry %}Edit{% else %}Add{% endif %} {{ kind }} · Sable{% endblock %}
+{% block body_class %}transaction-editor-page{% endblock %}
+{% block layout %}
+<main id="main-content" class="transaction-editor-shell">
+    <a class="text-button transaction-back" href="{% url 'finance:dashboard' %}#stocks-news">← Back to investments</a>
+    <section class="panel">
+        <form method="post" class="entry-form" data-instrument-search="{% url 'finance:instrument-search' %}">
+            {% csrf_token %}
+            <div class="dialog-heading"><div><p class="eyebrow">Your portfolio</p><h1>{% if entry %}Edit{% else %}Add{% endif %} {{ kind }}</h1></div></div>
+            <p class="transaction-editor-note">{% if kind == 'holding' %}Enter the stock and shares you currently own. Sable looks up market prices automatically; this does not place a trade.{% else %}Follow a stock or ETF without including it in your portfolio value.{% endif %}</p>
+            {% if form.non_field_errors %}<div class="form-error" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+            <div class="entry-fields">
+                {% for field in form %}<div class="entry-field">{{ field.label_tag }}{{ field }}{% if field.help_text %}<p class="form-hint">{{ field.help_text }}</p>{% endif %}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}</div>{% endfor %}
+            </div>
+            <datalist id="instrument-results"></datalist><p id="instrument-search-status" class="form-hint" role="status" aria-live="polite"></p>
+            <div class="dialog-actions">
+                {% if entry %}<a class="button transaction-delete-button investment-delete-link" href="{% url 'finance:holding-delete' entry.pk %}">Remove holding</a>{% endif %}
+                <a class="button button-outline" href="{% url 'finance:dashboard' %}#stocks-news">Cancel</a>
+                <button class="button button-gold" type="submit">{% if entry %}Save changes{% else %}Add {{ kind }}{% endif %}</button>
+            </div>
+        </form>
+    </section>
+</main>
+<script src="{% static 'members/investment-form.js' %}" defer></script>
+{% endblock %}
