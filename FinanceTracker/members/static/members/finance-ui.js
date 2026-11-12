@@ -12,20 +12,6 @@ if (passwordButton && passwordInput) {
     });
 }
 
-// Sidebar links jump to real sections on this dashboard.
-const sectionLinks = document.querySelectorAll('.sidebar nav .nav-link');
-function updateNavigation() {
-    const selected = window.location.hash || '#overview';
-    sectionLinks.forEach(link => {
-        const active = link.getAttribute('href') === selected;
-        link.classList.toggle('active', active);
-        if (active) link.setAttribute('aria-current', 'location');
-        else link.removeAttribute('aria-current');
-    });
-}
-window.addEventListener('hashchange', updateNavigation);
-updateNavigation();
-
 document.querySelectorAll('[data-open-dialog]').forEach(button => {
     button.addEventListener('click', () => {
         document.getElementById(button.dataset.openDialog)?.showModal();
@@ -53,3 +39,8 @@ document.querySelectorAll('.entry-form select[name="category_name"]').forEach(se
 });
 
 document.querySelector('dialog[data-reopen]')?.showModal();
+
+const requestedDialog = new URLSearchParams(window.location.search).get('dialog');
+if (requestedDialog === 'transaction-dialog' || requestedDialog === 'account-dialog' || requestedDialog === 'budget-dialog') {
+    document.getElementById(requestedDialog)?.showModal();
+}

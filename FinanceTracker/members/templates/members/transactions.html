@@ -1,0 +1,63 @@
+{% extends 'members/section_base.html' %}
+{% block title %}Transactions · Sable{% endblock %}
+{% block section_actions %}<a class="button button-gold" href="{% url 'finance:dashboard' %}?dialog=transaction-dialog">+ Add transaction</a>{% endblock %}
+{% block section_content %}
+<section class="panel transaction-filters" aria-label="Filter transaction history">
+    <form method="get" class="filter-form">
+        <label class="filter-field">Search
+            <input type="search" name="q" value="{{ search }}" maxlength="100" placeholder="Description, payee, or category">
+        </label>
+        <label class="filter-field">Year
+            <select name="year"><option value="all"{% if selected_year == 'all' %} selected{% endif %}>All years</option>{% for year in years %}<option value="{{ year }}"{% if selected_year == year|stringformat:'s' %} selected{% endif %}>{{ year }}</option>{% endfor %}</select>
+        </label>
+        <label class="filter-field">Type
+            <select name="type"><option value="">All types</option>{% for value, label in transaction_types %}<option value="{{ value }}"{% if selected_type == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+        </label>
+        <label class="filter-field">Account
+            <select name="account"><option value="">All accounts</option>{% for account in accounts %}<option value="{{ account.pk }}"{% if selected_account == account.pk|stringformat:'s' %} selected{% endif %}>{{ account.account_name }}</option>{% endfor %}</select>
+        </label>
+        <label class="filter-field">Category
+            <select name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category.category_id }}"{% if selected_category == category.category_id|stringformat:'s' %} selected{% endif %}>{{ category.category__category_name }}</option>{% endfor %}</select>
+        </label>
+        <label class="filter-field">From
+            <input type="date" name="start" value="{{ start_date }}">
+        </label>
+        <label class="filter-field">To
+            <input type="date" name="end" value="{{ end_date }}">
+        </label>
+        <div class="filter-actions"><button class="button button-gold" type="submit">Apply filters</button><a class="button button-outline" href="{% url 'finance:transactions' %}">Reset</a></div>
+    </form>
+    {% if filter_error %}<p class="filter-error" role="alert">{{ filter_error }}</p>{% endif %}
+</section>
+<section class="transaction-totals" aria-label="Filtered totals">
+    <article class="panel transaction-total-card"><span class="eyebrow">Results</span><strong>{{ page_obj.paginator.count }}</strong><span>matching transactions</span></article>
+    {% for total in totals %}<article class="panel transaction-total-card{% if total.transaction_type == 'credit' %} positive-total{% endif %}"><span class="eyebrow">{{ total.account__currency }} {% if total.transaction_type == 'credit' %}income{% else %}spending{% endif %}</span><strong>{{ total.account__currency }} {{ total.total|floatformat:2 }}</strong><span>{% if total.transaction_type == 'credit' %}Money in{% else %}Money out{% endif %}</span></article>{% endfor %}
+</section>
+<section class="panel transaction-history" aria-labelledby="history-title">
+    <div class="panel-heading"><div><h2 id="history-title">All activity</h2><p class="small-label">Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}</p></div></div>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Transaction list; scroll horizontally to see all columns">
+        <table class="transactions-table">
+            <thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Category</th><th scope="col">Account</th><th scope="col">Amount</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+            <tbody>
+            {% for entry in transactions %}
+                <tr>
+                    <td>{{ entry.transaction_date|date:'M j, Y' }}</td>
+                    <td><strong>{% if entry.description %}{{ entry.description }}{% elif entry.payee %}{{ entry.payee.payee_name }}{% else %}Transaction{% endif %}</strong></td>
+                    <td>{{ entry.category.category_name|default:'Uncategorized' }}</td>
+                    <td>{{ entry.account.account_name }}</td>
+                    <td class="amount {% if entry.transaction_type == 'credit' %}income{% endif %}">{% if entry.transaction_type == 'credit' %}+{% else %}−{% endif %}{{ entry.account.currency }} {{ entry.amount|floatformat:2 }}</td>
+                    <td><a class="row-action" href="{% url 'finance:transaction-edit' entry.pk %}">Edit</a></td>
+                </tr>
+            {% empty %}<tr><td class="table-empty" colspan="6">No transactions match these filters. Try changing the year or clearing a filter.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="transaction-pagination" aria-label="Transaction pages">
+        {% if page_obj.has_previous %}<a class="button button-outline" href="?{% if filter_query %}{{ filter_query }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">← Newer</a>{% else %}<span></span>{% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}<a class="button button-outline" href="?{% if filter_query %}{{ filter_query }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Older →</a>{% endif %}
+    </nav>
+    {% endif %}
+</section>
+{% endblock %}

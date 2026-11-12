@@ -1,0 +1,8 @@
+{% extends 'members/section_base.html' %}
+{% load static %}
+{% block title %}Investments · Sable{% endblock %}
+{% block section_heading %}{% endblock %}
+{% block section_content %}
+{% include 'members/_investments.html' %}
+<script src="{% static 'members/market-news.js' %}" defer></script>
+{% endblock %}

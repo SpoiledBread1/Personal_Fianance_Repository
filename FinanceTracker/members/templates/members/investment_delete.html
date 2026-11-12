@@ -3,11 +3,11 @@
 {% block body_class %}transaction-editor-page{% endblock %}
 {% block layout %}
 <main id="main-content" class="transaction-editor-shell">
-    <a class="text-button transaction-back" href="{% url 'finance:holding-edit' entry.pk %}">← Back to holding</a>
+    <a class="text-button transaction-back" href="{% url 'finance:investments' %}">← Back to investments</a>
     <section class="panel"><form method="post" class="entry-form">
         {% csrf_token %}<div class="dialog-heading"><h1>Remove {{ entry.symbol }}?</h1></div>
         <p class="transaction-editor-note">This removes {{ entry.shares|floatformat:'-6' }} shares of {{ entry.name }} from your Sable portfolio. It does not sell shares or change your account balances.</p>
-        <div class="dialog-actions"><a class="button button-outline" href="{% url 'finance:holding-edit' entry.pk %}">Keep holding</a><button class="button transaction-delete-button" type="submit">Remove holding</button></div>
+        <div class="dialog-actions"><a class="button button-outline" href="{% url 'finance:investments' %}">Keep holding</a><button class="button transaction-delete-button" type="submit">Remove holding</button></div>
     </form></section>
 </main>
 {% endblock %}

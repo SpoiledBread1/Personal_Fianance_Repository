@@ -4,7 +4,7 @@
 {% block body_class %}transaction-editor-page{% endblock %}
 {% block layout %}
 <main id="main-content" class="transaction-editor-shell">
-    <a class="text-button transaction-back" href="{% url 'finance:dashboard' %}#stocks-news">← Back to investments</a>
+    <a class="text-button transaction-back" href="{% url 'finance:investments' %}">← Back to investments</a>
     <section class="panel">
         <form method="post" class="entry-form" data-instrument-search="{% url 'finance:instrument-search' %}">
             {% csrf_token %}
@@ -17,7 +17,7 @@
             <datalist id="instrument-results"></datalist><p id="instrument-search-status" class="form-hint" role="status" aria-live="polite"></p>
             <div class="dialog-actions">
                 {% if entry %}<a class="button transaction-delete-button investment-delete-link" href="{% url 'finance:holding-delete' entry.pk %}">Remove holding</a>{% endif %}
-                <a class="button button-outline" href="{% url 'finance:dashboard' %}#stocks-news">Cancel</a>
+                <a class="button button-outline" href="{% url 'finance:investments' %}">Cancel</a>
                 <button class="button button-gold" type="submit">{% if entry %}Save changes{% else %}Add {{ kind }}{% endif %}</button>
             </div>
         </form>

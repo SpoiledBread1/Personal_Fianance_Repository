@@ -31,7 +31,7 @@ class MarketNewsTests(TestCase):
 		response = self.client.get(reverse("finance:dashboard"))
 
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, 'href="#stocks-news"')
+		self.assertContains(response, reverse("finance:investments"))
 		self.assertContains(response, "Market &amp; finance headlines")
 		self.assertContains(response, reverse("finance:market-data"))
 

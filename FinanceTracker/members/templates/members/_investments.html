@@ -2,7 +2,7 @@
          data-market-data-url="{% url 'finance:market-data' %}">
     <div class="dashboard-heading market-news-heading">
         <div><h1 id="market-news-title">Investments</h1><p>Your portfolio, at a glance.</p></div>
-        <div class="investment-heading-actions"><span class="small-label">US stocks &amp; ETFs · USD</span><a class="button button-gold" href="{% url 'finance:holding-add' %}">+ Add holding</a></div>
+        <div class="investment-heading-actions"><span class="small-label">US stocks &amp; ETFs · USD</span><a class="button button-outline" href="{% url 'finance:investments' %}">Open portfolio</a><a class="button button-gold" href="{% url 'finance:holding-add' %}">+ Add holding</a></div>
     </div>
     <div class="investment-summary">
         <section class="panel investment-stat"><p class="eyebrow" id="portfolio-value-label">Portfolio value</p><p class="investment-stat-value" id="portfolio-value">{% if not holdings %}$0.00{% else %}—{% endif %}</p></section>

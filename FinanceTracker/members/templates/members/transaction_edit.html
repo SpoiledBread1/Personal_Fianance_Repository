@@ -3,7 +3,7 @@
 {% block body_class %}transaction-editor-page{% endblock %}
 {% block layout %}
 <main id="main-content" class="transaction-editor-shell">
-    <a class="text-button transaction-back" href="{% url 'finance:dashboard' %}#transactions">← Back to transactions</a>
+    <a class="text-button transaction-back" href="{% url 'finance:transactions' %}">← Back to transactions</a>
     <section class="panel" aria-labelledby="edit-title">
         <form method="post" class="entry-form">
             {% csrf_token %}
@@ -24,7 +24,7 @@
                    style="margin-right: auto;">
                     Delete transaction
                 </a>
-                <a class="button button-outline" href="{% url 'finance:dashboard' %}#transactions">Cancel</a>
+                <a class="button button-outline" href="{% url 'finance:transactions' %}">Cancel</a>
                 <button class="button button-gold" type="submit">Save changes</button>
             </div>
         </form>

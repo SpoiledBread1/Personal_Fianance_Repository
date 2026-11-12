@@ -20,7 +20,15 @@ def quote(symbol, price='200', close='198', stale=False, days=0):
             'fetched_at': timezone.now().isoformat(), 'stale': stale}
 
 
-@override_settings(FINNHUB_API_KEY='testing-provider-key')
+@override_settings(
+    FINNHUB_API_KEY='testing-provider-key',
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+        },
+    },
+)
 class InvestmentTests(TestCase):
     def setUp(self):
         User = get_user_model()
@@ -35,7 +43,7 @@ class InvestmentTests(TestCase):
         kind = AccountType.objects.create(type_name='Investments')
         account = Account.objects.create(user=self.user, account_type=kind, account_name='Broker', current_balance=123)
         response = self.client.post(reverse('finance:holding-add'), {'symbol':'aapl', 'shares':'2.125'})
-        self.assertRedirects(response, reverse('finance:dashboard')+'#stocks-news')
+        self.assertRedirects(response, reverse('finance:investments'))
         entry = Holding.objects.get(user=self.user)
         self.assertEqual(entry.symbol, 'AAPL')
         self.assertEqual(entry.shares, Decimal('2.125'))
@@ -108,8 +116,8 @@ class InvestmentTests(TestCase):
         self.assertEqual(secure.post(reverse('finance:holding-add'),{'symbol':'AAPL','shares':3}).status_code,403)
         self.assertEqual(secure.post(guarded[2]).status_code,403)
 
-    def test_dashboard_contains_approved_columns_and_safe_empty_state(self):
-        page=self.client.get(reverse('finance:dashboard'))
+    def test_investments_page_contains_approved_columns_and_safe_empty_state(self):
+        page=self.client.get(reverse('finance:investments'))
         for text in ('Shares','Price chng','Day change $','Market value','News for your holdings','Add holding'):
             self.assertContains(page,text)
         self.assertNotContains(page,'Avg. cost')

@@ -11,7 +11,7 @@ from .models import Holding, WatchlistEntry
 
 
 def _home():
-    return redirect(reverse("finance:dashboard") + "#stocks-news")
+    return redirect(reverse("finance:investments"))
 
 
 @login_required

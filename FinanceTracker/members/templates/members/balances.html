@@ -1,0 +1,26 @@
+{% extends 'members/section_base.html' %}
+{% load static %}
+{% block title %}Balances · Sable{% endblock %}
+{% block section_actions %}<a class="button button-gold" href="{% url 'finance:dashboard' %}?dialog=account-dialog">+ Add account</a>{% endblock %}
+{% block section_content %}
+<section class="balance-overview-grid" aria-label="Account totals by currency">
+    {% for total in currency_totals %}<article class="panel balance-total-card"><span class="balance-total-icon"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg></span><span class="eyebrow">Total in {{ total.currency }}</span><strong>{{ total.currency }} {{ total.total|floatformat:2 }}</strong></article>{% empty %}
+    <article class="panel empty-panel"><h2>No accounts yet</h2><p>Add an account to see a clear view of its balance and activity.</p><a class="button button-gold" href="{% url 'finance:dashboard' %}?dialog=account-dialog">Add your first account</a></article>
+    {% endfor %}
+</section>
+{% if accounts %}
+<section class="panel account-list-panel" aria-labelledby="account-list-title">
+    <div class="panel-heading"><div><h2 id="account-list-title">Your accounts</h2><p class="small-label">{{ accounts|length }} account{{ accounts|length|pluralize }} · grouped by currency</p></div></div>
+    <div class="account-list">
+        {% for account in accounts %}
+        <article class="account-detail-row">
+            <span class="icon-tile"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg></span>
+            <div class="account-detail-copy"><strong>{{ account.account_name }}</strong><span>{{ account.account_type.type_name }} · {{ account.transaction_count }} transaction{{ account.transaction_count|pluralize }}</span></div>
+            <strong class="account-detail-balance">{{ account.currency }} {{ account.current_balance|floatformat:2 }}</strong>
+            <span class="account-last-activity">{% if account.last_transaction %}Last activity {{ account.last_transaction|date:'M j, Y' }}{% else %}No transactions yet{% endif %}</span>
+        </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

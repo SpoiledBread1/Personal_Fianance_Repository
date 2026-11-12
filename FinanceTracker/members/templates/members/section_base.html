@@ -1,0 +1,23 @@
+{% extends 'members/base.html' %}
+{% block body_class %}dashboard-page{% endblock %}
+{% block layout %}
+{% include 'members/_sidebar.html' %}
+<div class="dashboard-shell">
+    <header class="dashboard-topbar">
+        <p class="breadcrumb">Personal finance <span>/</span> {{ page_title }}</p>
+        <div class="topbar-details"><span class="sample-month">{{ current_month }}</span><span class="avatar" title="{{ user.first_name|default:'Your account' }}">{{ user.first_name|default:'S'|slice:':1'|upper }}</span></div>
+    </header>
+    <main id="main-content" class="dashboard-main">
+        {% block section_heading %}
+        <section class="dashboard-heading" aria-labelledby="page-title">
+            <div><p class="eyebrow gold">Your finances</p><h1 id="page-title">{{ page_title }}</h1><p>{{ page_subtitle }}</p></div>
+            {% block section_actions %}{% endblock %}
+        </section>
+        {% endblock %}
+        {% if messages %}<div class="dashboard-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
+        {% block section_content %}{% endblock %}
+    </main>
+    <footer class="dashboard-footer"><span>Your private financial overview.</span><span>Discipline today. Options tomorrow.</span></footer>
+</div>
+{% block layout_scripts %}{% endblock %}
+{% endblock %}

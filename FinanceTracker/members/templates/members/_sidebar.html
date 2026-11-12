@@ -1,0 +1,20 @@
+{% load static %}
+<aside class="sidebar">
+    <a class="sidebar-brand sable-sidebar-brand" href="{% url 'finance:dashboard' %}" aria-label="Sable overview">
+        <span class="sable-symbol-frame" aria-hidden="true">
+            <img class="sable-symbol-image" src="{% static 'members/sable/sable-symbol.png' %}" alt="" width="1254" height="1254">
+        </span>
+    </a>
+    <p class="nav-label">Workspace</p>
+    <nav aria-label="Finance sections">
+        <a class="nav-link{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" href="{% url 'finance:dashboard' %}"{% if request.resolver_match.url_name == 'dashboard' %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#icon-overview"/></svg><span>Overview</span></a>
+        <a class="nav-link{% if request.resolver_match.url_name == 'transactions' %} active{% endif %}" href="{% url 'finance:transactions' %}"{% if request.resolver_match.url_name == 'transactions' %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#icon-ledger"/></svg><span>Transactions</span></a>
+        <a class="nav-link{% if request.resolver_match.url_name == 'budgets' %} active{% endif %}" href="{% url 'finance:budgets' %}"{% if request.resolver_match.url_name == 'budgets' %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg><span>Budgets</span></a>
+        <a class="nav-link{% if request.resolver_match.url_name == 'balances' %} active{% endif %}" href="{% url 'finance:balances' %}"{% if request.resolver_match.url_name == 'balances' %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg><span>Balances</span></a>
+        <a class="nav-link{% if request.resolver_match.url_name == 'investments' %} active{% endif %}" href="{% url 'finance:investments' %}"{% if request.resolver_match.url_name == 'investments' %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#icon-market"/></svg><span>Investments</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+        <form method="post" action="{% url 'finance:logout' %}">{% csrf_token %}<button class="nav-link logout-button" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-logout"/></svg><span>Log out</span></button></form>
+        <p class="sidebar-signoff">A calmer<br>financial life.</p>
+    </div>
+</aside>

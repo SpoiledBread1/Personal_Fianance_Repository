@@ -3,31 +3,7 @@
 {% block title %}Overview · Sable{% endblock %}
 {% block body_class %}dashboard-page{% endblock %}
 {% block layout %}
-<aside class="sidebar">
-    <a class="sidebar-brand sable-sidebar-brand"
-       href="{% url 'finance:dashboard' %}"
-       aria-label="Sable overview">
-    <span class="sable-symbol-frame" aria-hidden="true">
-        <img class="sable-symbol-image"
-             src="{% static 'members/sable/sable-symbol.png' %}"
-             alt=""
-             width="1254"
-             height="1254">
-    </span>
-    </a>
-    <p class="nav-label">Workspace</p>
-    <nav aria-label="Dashboard sections">
-        <a class="nav-link active" href="#overview" aria-current="location"><svg class="icon" aria-hidden="true"><use href="#icon-overview"/></svg><span>Overview</span></a>
-        <a class="nav-link" href="#transactions"><svg class="icon" aria-hidden="true"><use href="#icon-ledger"/></svg><span>Transactions</span></a>
-        <a class="nav-link" href="#budgets"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg><span>Budgets</span></a>
-        <a class="nav-link" href="#balances"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg><span>Balances</span></a>
-        <a class="nav-link" href="#stocks-news"><svg class="icon" aria-hidden="true"><use href="#icon-market"/></svg><span>Investments</span></a>
-    </nav>
-    <div class="sidebar-bottom">
-        <form method="post" action="{% url 'finance:logout' %}">{% csrf_token %}<button class="nav-link logout-button" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-logout"/></svg><span>Log out</span></button></form>
-        <p class="sidebar-signoff">A calmer<br>financial life.</p>
-    </div>
-</aside>
+{% include 'members/_sidebar.html' %}
 <div class="dashboard-shell">
     <header class="dashboard-topbar">
         <p class="breadcrumb">Personal finance <span>/</span> Overview</p>
@@ -40,9 +16,9 @@
         </section>
         {% if messages %}<div class="dashboard-messages" role="status">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
         <div class="overview-grid">
-            <section class="panel cash-panel" id="balances" aria-labelledby="cash-title">
-                <div class="cash-copy"><p class="eyebrow" id="cash-title">Available cash</p><p class="cash-amount">${{ available_cash|floatformat:2 }}</p><p class="cash-subtitle">Across {{ accounts|length }} account{{ accounts|length|pluralize }}</p><div class="cash-footnote"><span class="gold">Your financial picture</span><p>Balances from your connected accounts.</p></div></div>
-                <div class="cash-chart"><div class="accounts-heading"><figcaption>Accounts <span>{{ accounts|length }} total</span></figcaption><button class="text-button" type="button" data-open-dialog="account-dialog">+ Add account</button></div>{% for account in accounts %}<div class="budget-label"><span>{{ account.account_name }}</span><span class="budget-amount">{{ account.currency }} {{ account.current_balance|floatformat:2 }}</span></div>{% empty %}<p class="empty-state">No accounts to display.</p>{% endfor %}</div>
+            <section class="panel cash-panel" aria-labelledby="cash-title">
+                <div class="cash-copy"><span class="cash-orbit cash-orbit-one" aria-hidden="true"></span><span class="cash-orbit cash-orbit-two" aria-hidden="true"></span><p class="eyebrow" id="cash-title">Available cash</p><p class="cash-caption">Across {{ accounts|length }} account{{ accounts|length|pluralize }}</p><div class="cash-total-list">{% for total in cash_totals %}<p class="cash-amount"><span class="cash-currency">{{ total.currency }}</span>{{ total.total|floatformat:2 }}</p>{% empty %}<p class="cash-amount"><span class="cash-currency">USD</span>0.00</p>{% endfor %}</div><p class="cash-footnote">Your accounts at a glance.</p></div>
+                <div class="cash-chart"><div class="accounts-heading"><figcaption>Your accounts <span>{{ accounts|length }} total</span></figcaption><button class="text-button" type="button" data-open-dialog="account-dialog">+ Add account</button></div>{% for account in accounts %}<div class="cash-account-row"><span class="cash-account-marker" aria-hidden="true"></span><span class="cash-account-name">{{ account.account_name }}<small>{{ account.account_type.type_name }}</small></span><strong class="budget-amount">{{ account.currency }} {{ account.current_balance|floatformat:2 }}</strong></div>{% empty %}<p class="empty-state">Add an account to see balances here.</p>{% endfor %}<a class="cash-details-link" href="{% url 'finance:balances' %}">View all accounts <span aria-hidden="true">→</span></a></div>
             </section>
             <section class="panel metrics-panel" aria-label="Monthly summary">
                 <div class="metric"><p class="eyebrow">Monthly spending</p><p class="metric-value"><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg>${{ monthly_spending|floatformat:2 }}</p></div>
@@ -63,7 +39,7 @@
         </div>
         <div class="details-grid">
             <section class="panel transactions-panel" id="transactions" aria-labelledby="transactions-title">
-                <div class="panel-heading"><h2 id="transactions-title">Transactions</h2><span class="small-label">{{ transaction_page.paginator.count }} total</span></div>
+                <div class="panel-heading"><div><h2 id="transactions-title">Transactions</h2><span class="small-label">{{ transaction_page.paginator.count }} total</span></div><a class="text-button" href="{% url 'finance:transactions' %}">View all →</a></div>
                 <div class="transaction-list">{% for transaction in transactions %}
                     <div class="transaction-row">
                         <span class="icon-tile compact-icon {% if transaction.transaction_type == 'credit' %}income{% endif %}"><svg class="icon" aria-hidden="true"><use href="{% if transaction.transaction_type == 'credit' %}#icon-income{% elif transaction.category.category_name == 'Groceries' %}#icon-cart{% elif transaction.category.category_name == 'Dining' %}#icon-coffee{% elif transaction.category.category_name == 'Transport' %}#icon-fuel{% else %}#icon-ledger{% endif %}"/></svg></span>
@@ -83,14 +59,27 @@
                 {% endif %}
             </section>
             <section class="panel budgets-panel" id="budgets" aria-labelledby="budgets-title">
-                <div class="panel-heading"><h2 id="budgets-title">Budgets</h2><span class="small-label">{{ current_month }}</span></div>
+                <div class="panel-heading"><div><h2 id="budgets-title">Budgets</h2><span class="small-label">{{ current_month }}</span></div><a class="text-button" href="{% url 'finance:budgets' %}">View all →</a></div>
                 <div class="budget-list">{% for budget in budgets %}<div class="budget-row">
                     <span class="icon-tile"><svg class="icon" aria-hidden="true"><use href="{% if budget.name == 'Groceries' %}#icon-cart{% elif budget.name == 'Dining out' %}#icon-coffee{% else %}#icon-fuel{% endif %}"/></svg></span>
                     <div class="budget-content"><div class="budget-label"><span>{{ budget.name }}</span><span class="budget-amount"><strong>${{ budget.spent }}</strong><span> / ${{ budget.limit }}</span></span></div><progress value="{{ budget.spent }}" max="{{ budget.limit }}" aria-label="{{ budget.name }} spending">{{ budget.percent }}%</progress><div class="budget-meta"><span>${{ budget.remaining }} remaining</span><span>{{ budget.percent }}%</span></div></div>
                 </div>{% empty %}<p class="empty-state">No budgets to display.</p>{% endfor %}</div>
             </section>
         </div>
-        {% include 'members/_investments.html' %}
+        <section class="panel investment-preview" id="stocks-news" aria-labelledby="investment-preview-title">
+            <div class="investment-preview-heading">
+                <div><p class="eyebrow gold">Invest in your future</p><h2 id="investment-preview-title">Your investments</h2><p>A focused view of the stocks and funds you follow.</p></div>
+                <a class="button button-gold" href="{% url 'finance:investments' %}">Open investments <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></a>
+            </div>
+            <div class="investment-preview-stats">
+                <article><span class="investment-preview-icon"><svg class="icon" aria-hidden="true"><use href="#icon-market"/></svg></span><strong>{{ holdings|length }}</strong><span>portfolio holding{{ holdings|length|pluralize }}</span></article>
+                <article><span class="investment-preview-icon"><svg class="icon" aria-hidden="true"><use href="#icon-eye"/></svg></span><strong>{{ watchlist_entries|length }}</strong><span>symbol{{ watchlist_entries|length|pluralize }} on your watchlist</span></article>
+            </div>
+            <div class="investment-preview-list">
+                {% for holding in holding_preview %}<div class="investment-preview-row"><span class="investment-preview-symbol">{{ holding.symbol|slice:':1' }}</span><span><strong>{{ holding.symbol }}</strong><small>{{ holding.name }}</small></span><span class="investment-preview-shares">{{ holding.shares|floatformat:'-6' }} shares</span></div>
+                {% empty %}<p class="empty-state">Your portfolio is ready when you are. Add a holding or follow a symbol from the investments page.</p>{% endfor %}
+            </div>
+        </section>
     </main>
     <footer class="dashboard-footer"><span>Your private financial overview.</span><span>Discipline today. Options tomorrow.</span></footer>
 </div>
@@ -129,5 +118,4 @@
         <div class="dialog-actions"><button class="button button-outline" type="button" data-close-dialog>Cancel</button><button class="button button-gold" type="submit">Save budget</button></div>
     </form>
 </dialog>
-<script src="{% static 'members/market-news.js' %}" defer></script>
 {% endblock %}

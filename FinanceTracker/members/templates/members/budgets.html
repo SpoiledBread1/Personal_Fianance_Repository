@@ -1,0 +1,22 @@
+{% extends 'members/section_base.html' %}
+{% block title %}Budgets · Sable{% endblock %}
+{% block section_actions %}<a class="button button-gold" href="{% url 'finance:dashboard' %}?dialog=budget-dialog">+ Add budget</a>{% endblock %}
+{% block section_content %}
+<section class="budget-overview-grid">
+    <article class="panel budget-overview-card"><span class="eyebrow">Active plans</span><strong>{{ current_budget_count }}</strong><span>budgets for this month</span></article>
+    <article class="panel budget-overview-card"><span class="eyebrow">Monthly limits</span><strong>${{ current_limit_total|floatformat:2 }}</strong><span>across active budgets</span></article>
+    <article class="panel budget-overview-card"><span class="eyebrow">Spent so far</span><strong>${{ current_spent_total|floatformat:2 }}</strong><span>current budget periods</span></article>
+</section>
+<section class="budget-page-grid" aria-label="Your budgets">
+    {% for budget in budgets %}
+    <article class="panel budget-detail-card">
+        <div class="budget-card-heading"><div><span class="eyebrow">{% if budget.is_current %}This month{% else %}Budget period{% endif %}</span><h2>{{ budget.category }}</h2></div><span class="budget-date">{{ budget.period_start|date:'M j' }} – {{ budget.period_end|date:'M j, Y' }}</span></div>
+        <div class="budget-label"><span>Spent</span><strong>${{ budget.spent|floatformat:2 }} <span>of ${{ budget.limit|floatformat:2 }}</span></strong></div>
+        <progress value="{{ budget.percent }}" max="100" aria-label="{{ budget.category }} budget used">{{ budget.percent }}%</progress>
+        <div class="budget-meta{% if budget.over_budget %} over-budget{% endif %}"><span>{% if budget.over_budget %}${{ budget.over_budget|floatformat:2 }} over budget{% else %}${{ budget.remaining|floatformat:2 }} left{% endif %}</span><span>{{ budget.percent }}% used</span></div>
+    </article>
+    {% empty %}
+    <article class="panel empty-panel"><span class="icon-tile"><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg></span><h2>A plan for every category</h2><p>Create your first monthly budget to keep spending intentional and spot changes early.</p><a class="button button-gold" href="{% url 'finance:dashboard' %}?dialog=budget-dialog">Create a budget <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></a></article>
+    {% endfor %}
+</section>
+{% endblock %}
