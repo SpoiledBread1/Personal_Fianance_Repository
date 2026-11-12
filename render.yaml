@@ -3,7 +3,7 @@ services:
     name: finance-hub-demo-aidan
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python FinanceTracker/manage.py collectstatic --no-input
+    buildCommand: pip install -r requirements && python FinanceTracker/manage.py collectstatic --no-input
     preDeployCommand: python FinanceTracker/manage.py migrate
     startCommand: gunicorn --chdir FinanceTracker FinanceTracker.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
@@ -19,6 +19,20 @@ services:
         sync: false
       - key: MARKET_WATCHLIST
         value: AAPL,MSFT,NVDA
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: EMAIL_USE_TLS
+        value: "True"
+      - key: EMAIL_USE_SSL
+        value: "False"
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
       - key: PYTHON_VERSION
         value: "3.13.12"
 

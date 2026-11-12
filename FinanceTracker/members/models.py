@@ -7,6 +7,11 @@ class MemberProfile(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile"
     )
     bank_name = models.CharField(max_length=100)
+    email_monthly_summary = models.BooleanField(default=False)
+    email_budget_alerts = models.BooleanField(default=False)
+    pending_email = models.EmailField(blank=True)
+    totp_secret = models.TextField(blank=True)
+    totp_enabled = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user} profile"
@@ -125,6 +130,7 @@ class Budget(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     period_start = models.DateField()
     period_end = models.DateField()
+    alert_sent = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.category} budget {self.period_start}–{self.period_end}"

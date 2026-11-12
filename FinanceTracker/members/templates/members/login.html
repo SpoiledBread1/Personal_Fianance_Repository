@@ -25,6 +25,12 @@
         <h2 id="sable-login-title">Welcome back.</h2>
         <p class="sable-form-subtitle">Log in to your account.</p>
 
+        {% if messages %}
+            {% for message in messages %}
+                <div class="sable-form-error" role="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
         {% if form.errors %}
             <div class="sable-form-error" id="sable-login-error" role="alert">
                 Login unsuccessful. Check your email and password.

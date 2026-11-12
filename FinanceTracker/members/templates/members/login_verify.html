@@ -1,0 +1,24 @@
+{% extends 'members/base.html' %}
+{% block title %}Verify sign-in · Sable{% endblock %}
+{% block body_class %}login-page sable-login{% endblock %}
+{% block layout %}
+<main id="main-content" class="sable-login-shell">
+    <section class="sable-login-form-panel verify-login-panel" aria-labelledby="verify-title">
+        <p class="sable-kicker">Account security</p>
+        <h1 id="verify-title">Verify it’s you.</h1>
+        <p class="sable-form-subtitle">Enter the 6-digit code from your authenticator app to finish signing in.</p>
+        {% if messages %}{% for message in messages %}<p class="account-field-error" role="alert">{{ message }}</p>{% endfor %}{% endif %}
+        <form class="sable-form" method="post">
+            {% csrf_token %}
+            <div class="sable-field">
+                <label for="{{ form.code.id_for_label }}">{{ form.code.label }}</label>
+                {{ form.code }}
+                {% for error in form.code.errors %}<p class="account-field-error" role="alert">{{ error }}</p>{% endfor %}
+            </div>
+            <input type="hidden" name="next" value="{{ next }}">
+            <button class="sable-login-submit" type="submit"><span>Verify and sign in</span></button>
+        </form>
+        <p class="sable-signup-link"><a href="{% url 'finance:login' %}">Return to log in</a></p>
+    </section>
+</main>
+{% endblock %}

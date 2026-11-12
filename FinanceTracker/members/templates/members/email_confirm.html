@@ -1,0 +1,16 @@
+{% extends 'members/base.html' %}
+{% block title %}Confirm email · Sable{% endblock %}
+{% block body_class %}login-page sable-login{% endblock %}
+{% block layout %}
+<main id="main-content" class="sable-login-shell">
+    <section class="sable-login-form-panel verify-login-panel" aria-labelledby="confirm-email-title">
+        <p class="sable-kicker">Account details</p>
+        <h1 id="confirm-email-title">Confirm your email.</h1>
+        <p class="sable-form-subtitle">Confirm <strong>{{ pending_email }}</strong> as the email address for your Sable account. Your current address remains active until you confirm.</p>
+        <form class="sable-form" method="post">
+            {% csrf_token %}
+            <button class="sable-login-submit" type="submit"><span>Confirm email address</span></button>
+        </form>
+    </section>
+</main>
+{% endblock %}

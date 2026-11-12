@@ -13,6 +13,7 @@ from django.core.paginator import Paginator
 
 from .forms import AccountForm, BudgetForm, TransactionForm
 from .models import Account, Budget, Transaction, Holding, WatchlistEntry
+from .notifications import budget_groups, update_budget_email_alerts
 
 
 SPENDING_CHART_COLORS = (
@@ -68,6 +69,14 @@ def dashboard(request):
                     Account.objects.filter(
                         pk=entry.account_id, user=request.user
                     ).update(current_balance=F("current_balance") + balance_change)
+                if not update_budget_email_alerts(
+                    request.user,
+                    budget_groups(entry.category_id, entry.transaction_date),
+                ):
+                    messages.warning(
+                        request,
+                        "Transaction saved, but a budget alert email could not be sent. Check the email settings in Render.",
+                    )
                 messages.success(request, "Transaction added.")
                 return redirect("finance:dashboard")
             open_dialog = "transaction-dialog"
@@ -403,6 +412,8 @@ def _balance_effect(entry):
 @require_http_methods(["GET", "POST"])
 def transaction_edit(request, pk):
     # Capture the old values before ModelForm validation mutates its instance.
+    updated_entry = None
+    old_group = None
     with transaction.atomic():
         entries = Transaction.objects.filter(account__user=request.user)
         if request.method == "POST":
@@ -410,6 +421,7 @@ def transaction_edit(request, pk):
         entry = get_object_or_404(entries, pk=pk)
         old_account_id = entry.account_id
         old_effect = _balance_effect(entry)
+        old_group = (entry.category_id, entry.transaction_date)
         form = TransactionForm(
             request.POST if request.method == "POST" else None,
             instance=entry,
@@ -428,24 +440,38 @@ def transaction_edit(request, pk):
                 Account.objects.filter(pk=account_id, user=request.user).update(
                     current_balance=F("current_balance") + changes[account_id]
                 )
-            messages.success(request, "Transaction updated.")
-            return redirect("finance:transactions")
+            updated_entry = updated
+    if updated_entry:
+        if not update_budget_email_alerts(
+            request.user,
+            (old_group, (updated_entry.category_id, updated_entry.transaction_date)),
+        ):
+            messages.warning(
+                request,
+                "Transaction updated, but a budget alert email could not be sent. Check the email settings in Render.",
+            )
+        messages.success(request, "Transaction updated.")
+        return redirect("finance:transactions")
     return render(request, "members/transaction_edit.html", {"form": form, "entry": entry})
 
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def transaction_delete(request, pk):
+    deleted_group = None
     with transaction.atomic():
         entries = Transaction.objects.filter(account__user=request.user)
         if request.method == "POST":
             entries = entries.select_for_update(of=("self",))
         entry = get_object_or_404(entries, pk=pk)
         if request.method == "POST":
+            deleted_group = (entry.category_id, entry.transaction_date)
             Account.objects.filter(pk=entry.account_id, user=request.user).update(
                 current_balance=F("current_balance") - _balance_effect(entry)
             )
             entry.delete()
-            messages.success(request, "Transaction deleted and account balance corrected.")
-            return redirect("finance:transactions")
+    if deleted_group:
+        update_budget_email_alerts(request.user, (deleted_group,), allow_send=False)
+        messages.success(request, "Transaction deleted and account balance corrected.")
+        return redirect("finance:transactions")
     return render(request, "members/transaction_delete.html", {"entry": entry})

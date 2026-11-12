@@ -142,6 +142,117 @@ class SignupForm(forms.Form):
         return user
 
 
+class AccountDetailsForm(forms.Form):
+    first_name = forms.CharField(
+        label="Name",
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "given-name"}),
+    )
+    email = forms.EmailField(
+        label="Email address",
+        max_length=150,
+        widget=forms.EmailInput(attrs={"autocomplete": "email"}),
+    )
+    current_password = forms.CharField(
+        label="Current password to change email",
+        required=False,
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    )
+    bank_name = forms.CharField(
+        label="Financial institution",
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={"autocomplete": "organization"}),
+    )
+    email_monthly_summary = forms.BooleanField(
+        label="Monthly financial summary",
+        required=False,
+    )
+    email_budget_alerts = forms.BooleanField(
+        label="Budget limit alerts",
+        required=False,
+    )
+
+    def __init__(self, *args, user, profile, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.profile = profile
+        self.initial.update(
+            {
+                "first_name": user.first_name,
+                "email": user.email,
+                "bank_name": profile.bank_name,
+                "email_monthly_summary": profile.email_monthly_summary,
+                "email_budget_alerts": profile.email_budget_alerts,
+            }
+        )
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        user_model = get_user_model()
+        if user_model.objects.filter(email__iexact=email).exclude(pk=self.user.pk).exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        if user_model.objects.filter(username__iexact=email).exclude(pk=self.user.pk).exists():
+            raise forms.ValidationError("This email is already in use.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get("email")
+        if email and email.casefold() != self.user.email.casefold():
+            current_password = cleaned_data.get("current_password")
+            if not current_password or not self.user.check_password(current_password):
+                self.add_error(
+                    "current_password",
+                    "Enter your current password to request an email change.",
+                )
+        return cleaned_data
+
+    def save(self):
+        self.user.first_name = self.cleaned_data["first_name"].strip()
+        self.user.save(update_fields=("first_name",))
+        self.profile.bank_name = self.cleaned_data["bank_name"].strip()
+        self.profile.email_monthly_summary = self.cleaned_data["email_monthly_summary"]
+        self.profile.email_budget_alerts = self.cleaned_data["email_budget_alerts"]
+        pending_email = ""
+        if self.cleaned_data["email"].casefold() != self.user.email.casefold():
+            pending_email = self.cleaned_data["email"]
+            self.profile.pending_email = pending_email
+        self.profile.save(
+            update_fields=(
+                "bank_name",
+                "email_monthly_summary",
+                "email_budget_alerts",
+                "pending_email",
+            )
+        )
+        return pending_email
+
+
+class AuthenticatorCodeForm(forms.Form):
+    code = forms.RegexField(
+        regex=r"^\d{6}$",
+        label="6-digit authenticator code",
+        error_messages={"invalid": "Enter the 6-digit code from your authenticator app."},
+        widget=forms.TextInput(
+            attrs={
+                "inputmode": "numeric",
+                "autocomplete": "one-time-code",
+                "pattern": "[0-9]{6}",
+                "maxlength": "6",
+            }
+        ),
+    )
+
+
+class DisableAuthenticatorForm(AuthenticatorCodeForm):
+    current_password = forms.CharField(
+        label="Current password",
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    )
+
+
 class TransactionForm(forms.ModelForm):
     category_name = forms.ChoiceField(label="Category", required=False)
     custom_category = forms.CharField(

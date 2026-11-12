@@ -4,3 +4,6 @@ gunicorn
 psycopg[binary]
 whitenoise
 python-dotenv
+cryptography
+pyotp
+qrcode

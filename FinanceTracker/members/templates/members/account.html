@@ -1,0 +1,118 @@
+{% extends 'members/section_base.html' %}
+{% block title %}Account · Sable{% endblock %}
+{% block section_content %}
+<div class="account-settings-grid">
+    <section class="panel account-settings-card" aria-labelledby="personal-title">
+        <div class="account-card-heading">
+            <div><p class="eyebrow gold">Your profile</p><h2 id="personal-title">Personal details</h2><p>Keep your contact details and financial email preferences up to date.</p></div>
+        </div>
+        <form method="post" class="account-settings-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="details">
+            <div class="account-form-fields">
+                {% for field in details_form %}
+                    {% if field.name == 'email_monthly_summary' or field.name == 'email_budget_alerts' %}
+                        <label class="account-checkbox">
+                            {{ field }}<span><strong>{{ field.label }}</strong>
+                            {% if field.name == 'email_monthly_summary' %}<small>A monthly snapshot of your income and spending, grouped by currency.</small>{% else %}<small>An email when spending in a budget reaches its limit.</small>{% endif %}</span>
+                        </label>
+                        {% for error in field.errors %}<p class="account-field-error">{{ error }}</p>{% endfor %}
+                    {% else %}
+                        <div class="account-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.name == 'current_password' %}<small class="account-field-hint">Only needed when changing your email. The new address won’t be used until you confirm it.</small>{% endif %}
+                            {% for error in field.errors %}<p class="account-field-error">{{ error }}</p>{% endfor %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="account-card-actions"><button class="button button-gold" type="submit">Save account details</button></div>
+            {% if pending_email %}
+                <div class="pending-email-note">
+                    <p>A change to <strong>{{ pending_email }}</strong> is waiting for confirmation. Your current email stays active until you confirm it.</p>
+                    <div class="account-card-actions">
+                        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="resend_email_confirmation"><button class="text-button" type="submit">Resend confirmation</button></form>
+                        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="cancel_email_change"><button class="text-button" type="submit">Cancel change</button></form>
+                    </div>
+                </div>
+            {% endif %}
+            {% if not email_host_configured %}<p class="account-delivery-note">Email delivery is not configured on this deployment yet. Your preferences will be saved; add SMTP settings in Render to receive messages.</p>{% endif %}
+        </form>
+    </section>
+
+    <section class="panel account-settings-card" aria-labelledby="security-title">
+        <div class="account-card-heading">
+            <div><p class="eyebrow gold">Sign-in security</p><h2 id="security-title">Password</h2><p>Choose a unique password and update it if you think it may have been exposed.</p></div>
+        </div>
+        <form method="post" class="account-settings-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="password">
+            <div class="account-form-fields">
+                {% for field in password_form %}
+                    <div class="account-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<div class="account-help-text">{{ field.help_text|safe }}</div>{% endif %}
+                        {% for error in field.errors %}<p class="account-field-error">{{ error }}</p>{% endfor %}
+                    </div>
+                {% endfor %}
+                {% for error in password_form.non_field_errors %}<p class="account-field-error">{{ error }}</p>{% endfor %}
+            </div>
+            <div class="account-card-actions"><button class="button button-outline" type="submit">Change password</button></div>
+        </form>
+    </section>
+
+    <section class="panel account-settings-card authenticator-card" aria-labelledby="authenticator-title">
+        <div class="account-card-heading">
+            <div><p class="eyebrow gold">Two-step verification</p><h2 id="authenticator-title">Authenticator app</h2><p>Use an authenticator app to generate a one-time code when you sign in.</p></div>
+            <span class="security-status{% if profile.totp_enabled %} enabled{% endif %}">{% if profile.totp_enabled %}Enabled{% else %}Not enabled{% endif %}</span>
+        </div>
+        {% if profile.totp_enabled %}
+            <form method="post" class="account-settings-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="disable_authenticator">
+                <div class="account-form-fields">
+                    {% for field in disable_form %}
+                        <div class="account-field">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<p class="account-field-error">{{ error }}</p>{% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <p class="account-security-note">Disabling this requires both your current password and a valid authenticator code.</p>
+                <div class="account-card-actions"><button class="button button-outline" type="submit">Disable authenticator</button></div>
+            </form>
+        {% elif authenticator_setup %}
+            <div class="authenticator-setup">
+                <ol>
+                    <li>Open your authenticator app and scan this QR code.</li>
+                    <li>Enter the current 6-digit code to confirm setup.</li>
+                </ol>
+                <img class="authenticator-qr" src="{{ authenticator_qr }}" alt="Authenticator setup QR code">
+                <details class="authenticator-manual-key"><summary>Can’t scan the code?</summary><p>Enter this setup key in your authenticator app:</p><code>{{ authenticator_secret }}</code></details>
+                <form method="post" class="account-settings-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="verify_authenticator">
+                    <div class="account-field">
+                        <label for="{{ authenticator_form.code.id_for_label }}">{{ authenticator_form.code.label }}</label>
+                        {{ authenticator_form.code }}
+                        {% for error in authenticator_form.code.errors %}<p class="account-field-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    <div class="account-card-actions"><button class="button button-gold" type="submit">Verify and enable</button></div>
+                </form>
+            </div>
+        {% else %}
+            <div class="account-card-actions">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="begin_authenticator">
+                    <button class="button button-gold" type="submit">Set up authenticator</button>
+                </form>
+            </div>
+            <p class="account-security-note">You’ll need your authenticator app each time you sign in. A pending sign-in verification expires after five minutes. Save your app’s recovery options somewhere safe.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

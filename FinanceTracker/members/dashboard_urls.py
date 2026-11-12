@@ -1,5 +1,11 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
+from .account_views import (
+    AccountLoginView,
+    account_settings,
+    confirm_email_change,
+    login_verify,
+)
 from .dashboard_views import (
     balances,
     budgets,
@@ -29,7 +35,14 @@ urlpatterns = [
     path("watchlist/add/", watchlist_add, name="watchlist-add"),
     path("watchlist/<int:pk>/remove/", watchlist_delete, name="watchlist-delete"),
     path("market-data/", market_data, name="market-data"),
-    path("login/", auth_views.LoginView.as_view(template_name="members/login.html", redirect_authenticated_user=True), name="login"),
+    path("account/", account_settings, name="account"),
+    path(
+        "account/confirm-email/<str:token>/",
+        confirm_email_change,
+        name="email-confirm",
+    ),
+    path("account/login-verify/", login_verify, name="login-verify"),
+    path("login/", AccountLoginView.as_view(), name="login"),
     path("signup/", signup, name="signup"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 ]

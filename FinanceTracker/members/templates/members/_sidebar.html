@@ -12,6 +12,7 @@
         <a class="nav-link{% if request.resolver_match.url_name == 'budgets' %} active{% endif %}" href="{% url 'finance:budgets' %}"{% if request.resolver_match.url_name == 'budgets' %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#icon-budget"/></svg><span>Budgets</span></a>
         <a class="nav-link{% if request.resolver_match.url_name == 'balances' %} active{% endif %}" href="{% url 'finance:balances' %}"{% if request.resolver_match.url_name == 'balances' %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#icon-card"/></svg><span>Balances</span></a>
         <a class="nav-link{% if request.resolver_match.url_name == 'investments' %} active{% endif %}" href="{% url 'finance:investments' %}"{% if request.resolver_match.url_name == 'investments' %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#icon-market"/></svg><span>Investments</span></a>
+        <a class="nav-link{% if request.resolver_match.url_name == 'account' %} active{% endif %}" href="{% url 'finance:account' %}"{% if request.resolver_match.url_name == 'account' %} aria-current="page"{% endif %}><svg class="icon" aria-hidden="true"><use href="#icon-account"/></svg><span>Account</span></a>
     </nav>
     <div class="sidebar-bottom">
         <form method="post" action="{% url 'finance:logout' %}">{% csrf_token %}<button class="nav-link logout-button" type="submit"><svg class="icon" aria-hidden="true"><use href="#icon-logout"/></svg><span>Log out</span></button></form>
